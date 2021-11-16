@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 #include <vector>
 #include "integrate.h"
 #include "multidimensional-range.h"
@@ -210,6 +210,7 @@ public:
 			auto pixel_range = range_of_pixel(pixel,bin_resolution,range);
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
+			//cout << samples_per_region << endl;
             std::size_t samples_per_region_rest = spp % regions_here.size();
 			std::vector<std::tuple<value_type,value_type>> samples; samples.reserve(spp);
 			
@@ -218,6 +219,82 @@ public:
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
+					auto [value,sample] = sampler.sample(f,local_range,rng);
+					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
+
+				}
+			} 
+            std::uniform_int_distribution<std::size_t> sample_region(std::size_t(0),regions_here.size()-1);
+            //We randomly distribute the rest of samples among all regions 
+            for (std::size_t i = 0; i<samples_per_region_rest; ++i) {
+			    std::size_t r = sample_region(rng);
+                auto local_range = pixel_range.intersection_large(regions_here[r]->range());
+				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
+				auto [value,sample] = sampler.sample(f,local_range,rng);
+				samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
+            }
+
+
+			auto a = alpha_calculator.alpha(samples);
+			//cout << "Hello???" << endl;
+			//cout << sampler << endl;
+			value_type residual = (std::get<0>(samples[0]) - a*std::get<1>(samples[0]));
+			for (std::size_t s=1; s<spp;++s)
+				residual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
+			bins(pixel) += (residual/double(spp));
+			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
+		}
+	}
+	
+	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
+		AlphaCalculator&& alpha_calculator, Sampler&& sampler, RNG&& rng, unsigned long spp) :
+			region_generator(std::forward<RegionGenerator>(region_generator)),
+			alpha_calculator(std::forward<AlphaCalculator>(alpha_calculator)),
+			sampler(std::forward<Sampler>(sampler)),
+			rng(std::forward<RNG>(rng)), spp(spp) {}
+};
+
+template<typename RegionGenerator, typename AlphaCalculator, typename Sampler, typename RNG>
+class IntegratorStratifiedPixelControlVariatesAntithetic {
+	RegionGenerator region_generator;
+	AlphaCalculator alpha_calculator;
+	Sampler sampler;
+	mutable RNG rng;
+	unsigned long spp;
+public:
+
+	typedef void is_integrator_tag;
+
+	template<typename Bins, std::size_t DIMBINS, typename F, typename Float, std::size_t DIM>
+	void integrate(Bins& bins, const std::array<std::size_t,DIMBINS>& bin_resolution, const F& f, const Range<Float,DIM>& range) const {
+        auto regions = region_generator.compute_regions(f,range);
+		using value_type = decltype(f(range.min()));
+		using R = typename decltype(regions)::value_type;
+		vector_dimensions<std::vector<const R*>,DIMBINS> regions_per_pixel(bin_resolution);
+		for (const auto& r : regions) for (auto pixel : pixels_in_region(r,bin_resolution,range))
+			regions_per_pixel[pixel].push_back(&r);
+		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
+			bins(pixel) = value_type(0);
+			auto pixel_range = range_of_pixel(pixel,bin_resolution,range);
+			const auto& regions_here = regions_per_pixel[pixel];
+			std::size_t samples_per_region = spp / regions_here.size();
+			//cout << samples_per_region << endl;
+            std::size_t samples_per_region_rest = spp % regions_here.size();
+			std::vector<std::tuple<value_type,value_type>> samples; samples.reserve(spp);
+			
+            //First: stratified distribution of samples (uniformly)
+			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
+                auto local_range = pixel_range.intersection_large(regions_here[r]->range());
+				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
+				for (std::size_t s = 0; s<samples_per_region/2; ++s) {
+					auto [value,sample] = sampler.sample(f,local_range,rng);
+					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
+					auto [value2,sample2] = sampler.sampleOpposite(f,local_range,rng,sample);
+					samples.push_back(std::make_tuple(factor*value2, factor*regions_here[r]->approximation_at(sample2)));
+
+				}
+				if (samples_per_region % 2 != 0) {
+					//non-antithetic extra
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
 				}
@@ -234,6 +311,8 @@ public:
 
 
 			auto a = alpha_calculator.alpha(samples);
+			//cout << "Hello???" << endl;
+			//cout << sampler << endl;
 			value_type residual = (std::get<0>(samples[0]) - a*std::get<1>(samples[0]));
 			for (std::size_t s=1; s<spp;++s)
 				residual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
@@ -242,7 +321,7 @@ public:
 		}
 	}
 	
-	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
+	IntegratorStratifiedPixelControlVariatesAntithetic(RegionGenerator&& region_generator,
 		AlphaCalculator&& alpha_calculator, Sampler&& sampler, RNG&& rng, unsigned long spp) :
 			region_generator(std::forward<RegionGenerator>(region_generator)),
 			alpha_calculator(std::forward<AlphaCalculator>(alpha_calculator)),
@@ -358,6 +437,18 @@ auto integrator_stratified_pixel_control_variates(RegionGenerator&& rg,
 }
 
 template<typename RegionGenerator, typename AlphaCalculator, typename Sampler, typename RNG>
+auto integrator_stratified_pixel_control_variates_antithetic(RegionGenerator&& rg,
+		AlphaCalculator&& alpha_calculator, Sampler&& sampler, RNG&& rng, unsigned long spp) {
+	return IntegratorStratifiedPixelControlVariatesAntithetic<
+		std::decay_t<RegionGenerator>,std::decay_t<AlphaCalculator>,std::decay_t<Sampler>,std::decay_t<RNG>>(
+			std::forward<RegionGenerator>(rg),
+			std::forward<AlphaCalculator>(alpha_calculator),
+			std::forward<Sampler>(sampler),
+			std::forward<RNG>(rng),
+			spp);
+}
+
+template<typename RegionGenerator, typename AlphaCalculator, typename Sampler, typename RNG>
 auto integrator_stratified_region_control_variates(RegionGenerator&& rg,
 		AlphaCalculator&& alpha_calculator, Sampler&& sampler, RNG&& rng, unsigned long spp) {
 	return IntegratorStratifiedRegionControlVariates<
@@ -379,8 +470,7 @@ auto integrator_optimized_adaptive_stratified_control_variates(Nested&& nested, 
 
 template<typename Nested, typename Error, typename RNG>
 auto integrator_optimized_perpixel_adaptive_stratified_control_variates(Nested&& nested, Error&& error, 
-		unsigned long adaptive_iterations, unsigned long spp, RNG&& rng,
-        std::enable_if_t<!std::is_integral_v<RNG>,int> dummy = 0) {
+		unsigned long adaptive_iterations, unsigned long spp, RNG&& rng) {
 			
 	return integrator_stratified_pixel_control_variates(region_generator(std::forward<Nested>(nested), std::forward<Error>(error), adaptive_iterations), AlphaOptimized(), FunctionSampler(), std::forward<RNG>(rng), spp);
 }
