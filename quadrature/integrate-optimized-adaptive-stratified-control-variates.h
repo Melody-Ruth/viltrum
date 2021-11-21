@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <unordered_map>
+using namespace std;
 #include <vector>
 #include "integrate.h"
 #include "multidimensional-range.h"
@@ -203,6 +205,16 @@ public:
 		using value_type = decltype(f(range.min()));
 		using R = typename decltype(regions)::value_type;
 		vector_dimensions<std::vector<const R*>,DIMBINS> regions_per_pixel(bin_resolution);
+		int tempCount = 0;
+		for (const auto& r : regions) {
+			tempCount++;
+		}
+		cout << "Number of regions total: " << tempCount << endl;
+		tempCount = 0;
+		for (auto pixel : multidimensional_range(bin_resolution)) {
+			tempCount++;
+		}
+		cout << "Number of pixels total: " << tempCount << endl;
 		for (const auto& r : regions) for (auto pixel : pixels_in_region(r,bin_resolution,range))
 			regions_per_pixel[pixel].push_back(&r);
 		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
@@ -210,6 +222,8 @@ public:
 			auto pixel_range = range_of_pixel(pixel,bin_resolution,range);
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
+			//cout << "Hello???" << endl;
+			//cout << "Number of regions associated with this pixel: " << regions_here.size() << ", spp: " << spp << ", samples per region: " << samples_per_region << endl;
 			//cout << samples_per_region << endl;
             std::size_t samples_per_region_rest = spp % regions_here.size();
 			std::vector<std::tuple<value_type,value_type>> samples; samples.reserve(spp);
@@ -271,6 +285,7 @@ public:
 		using value_type = decltype(f(range.min()));
 		using R = typename decltype(regions)::value_type;
 		vector_dimensions<std::vector<const R*>,DIMBINS> regions_per_pixel(bin_resolution);
+		unordered_map<int, int> samplesPerRegionCount;
 		for (const auto& r : regions) for (auto pixel : pixels_in_region(r,bin_resolution,range))
 			regions_per_pixel[pixel].push_back(&r);
 		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
@@ -279,6 +294,11 @@ public:
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
 			//cout << samples_per_region << endl;
+			/*if (samplesPerRegionCount.find(samples_per_region) != samplesPerRegionCount.end()) {
+				samplesPerRegionCount[samples_per_region] = samplesPerRegionCount[samples_per_region]+1;
+			} else {
+				samplesPerRegionCount[samples_per_region] = 1;
+			}*/
             std::size_t samples_per_region_rest = spp % regions_here.size();
 			std::vector<std::tuple<value_type,value_type>> samples; samples.reserve(spp);
 			
@@ -319,6 +339,10 @@ public:
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
 		}
+		//cout << "Samples per regions, count\n";
+		/*for (auto myPair : samplesPerRegionCount) {
+			cout << x.first << ", " << x.second << endl;
+		}*/
 	}
 	
 	IntegratorStratifiedPixelControlVariatesAntithetic(RegionGenerator&& region_generator,
