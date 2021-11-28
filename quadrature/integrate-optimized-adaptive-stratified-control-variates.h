@@ -23,9 +23,19 @@ public:
 		
 	template<typename F, typename Float, std::size_t DIM>
     auto compute_regions(const F& f, const Range<Float,DIM>& range) const {
+		//cout << "Computing regions!" << endl;
         auto regions = stepper.init(f,range);
         for (unsigned long i = 0; i<adaptive_iterations; ++i) {
             stepper.step(f,range,regions);
+		}
+
+		cout << "Region results: " << endl;
+		//cout << regions.size() << endl;
+		//int numRegions = 0;
+		for (auto region : regions) {
+			//numRegions++;
+			//cout << region.range().min()[0] << ", " << region.range().max()[0] << " and ";
+			//cout << region.range().min()[1] << ", " << region.range().max()[1] << endl;
 		}
         return regions;
     }
@@ -39,6 +49,7 @@ auto region_generator(Nested&& nested, Error&& error, unsigned long adaptive_ite
 
 template<typename Float, std::size_t DIM, std::size_t DIMBINS, typename R>
 auto pixels_in_region(const R& r, const std::array<std::size_t,DIMBINS>& bin_resolution, const Range<Float,DIM>& range) {
+	//range is the entire integration domain, r is the particular bin we're looking at
 	std::array<std::size_t,DIMBINS> start_bin, end_bin;
     for (std::size_t i = 0; i<DIMBINS;++i) {
         start_bin[i] = std::max(std::size_t(0),std::size_t(Float(bin_resolution[i])*(r.range().min(i) - range.min(i))/(range.max(i) - range.min(i))));
@@ -201,6 +212,10 @@ public:
 
 	template<typename Bins, std::size_t DIMBINS, typename F, typename Float, std::size_t DIM>
 	void integrate(Bins& bins, const std::array<std::size_t,DIMBINS>& bin_resolution, const F& f, const Range<Float,DIM>& range) const {
+		cout << "Bin dimensions: " << DIMBINS << endl;
+		for (int i = 0; i < DIM; i++) {
+			cout << range.min(i) << ", " << range.max(i) << endl;
+		}
         auto regions = region_generator.compute_regions(f,range);
 		using value_type = decltype(f(range.min()));
 		using R = typename decltype(regions)::value_type;

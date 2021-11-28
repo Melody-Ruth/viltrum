@@ -121,6 +121,10 @@ public:
         auto errdim = error(r);
         std::vector<ExtendedRegion<decltype(r),decltype(errdim)> > heap;
         heap.emplace_back(r,errdim);
+        cout << "Inside init\n";
+        for (int i = 0; i < 4; i++) {
+            cout << range.min()[i] << ", " << range.max()[i] << " and ";
+        }
         return heap;
     }
 
@@ -129,7 +133,11 @@ public:
     	auto r = heap.front();
 	    auto subregions = r.split(f,std::get<1>(r.extra()));
 	    std::pop_heap(heap.begin(),heap.end(),StepperAdaptive<N,Error>::compare_single<R>); heap.pop_back();
+        //cout << "dimension and error: \n";
+        //cout << DIM << endl;
+        //cout << typeid(error).name() << endl;
 	    for (auto sr : subregions) {
+            //cout << typeid(sr).name() << endl;
 		    auto errdim = error(sr);
 		    heap.emplace_back(sr,errdim); 
 		    std::push_heap(heap.begin(), heap.end(), StepperAdaptive<N,Error>::compare_single<R>);
