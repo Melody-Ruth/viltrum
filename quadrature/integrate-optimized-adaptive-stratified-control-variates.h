@@ -212,6 +212,54 @@ public:
 
 	template<typename Bins, std::size_t DIMBINS, typename F, typename Float, std::size_t DIM>
 	void integrate(Bins& bins, const std::array<std::size_t,DIMBINS>& bin_resolution, const F& f, const Range<Float,DIM>& range) const {
+		std::array<Float,DIM> graphingSample;
+		int numZero = 0;
+		int numTotal = 0;
+		int totalOther = 0;
+		int totalFive = 0;
+		int completeTotal = 0;
+		for (double i = 0; i < 1; i+=0.1) {
+			for (double j = 0; j < 1; j+= 0.1) {
+				for (double k = 0; k < 1; k+=0.1) {
+					for (double l = 0; l < 1; l+= 0.1) {
+						/*graphingSample[0] = i;
+						graphingSample[1] = k;
+						graphingSample[2] = 0.355903;
+						graphingSample[3] = 0.0576333;*/
+						graphingSample[0] = 0.833705;
+						graphingSample[1] = 0.347211;
+						graphingSample[2] = j;
+						graphingSample[4] = l;
+						graphingSample[2] = i;
+						graphingSample[3] = k;
+						//0.833705,0.347211
+						numTotal++;
+						auto [tempFValue] = f(graphingSample, rng, true);
+						//cout << "Result of graphing that: " << endl;
+						//cout << tempFValue[0] << ", " << tempFValue[1] << ", " << tempFValue[2] << endl;
+						//numZero++;
+						if (tempFValue[0] != 0 && (tempFValue[0] < 4.9 || tempFValue[0] > 5.1)) {
+							cout << i << "," << k << "," << tempFValue[0] << endl;
+							cout << "Hello\n";
+						}
+						
+						//for (auto tempFPart : tempFValue) {
+							/*if (tempFPart != 0) {
+								numZero--;
+								break;
+							}*/
+							//cout << tempFPart << endl;
+						//}
+						/*if (tempFPart[0] == 0) {
+							numZero++;
+						}*/
+					}
+				}
+			}
+		}
+		cout << "Tested " << numTotal << "points\n";
+		//cout << "Of those, " << (numTotal-numZero) << " had non-zero values\n";
+
 		cout << "Bin dimensions: " << DIMBINS << endl;
 		for (int i = 0; i < DIM; i++) {
 			cout << range.min(i) << ", " << range.max(i) << endl;
@@ -229,12 +277,65 @@ public:
 		for (auto pixel : multidimensional_range(bin_resolution)) {
 			tempCount++;
 		}
+		cout << f(range.min())[0] << ", " << f(range.min())[1] << ", " << f(range.min())[2] << endl;
 		cout << "Number of pixels total: " << tempCount << endl;
 		for (const auto& r : regions) for (auto pixel : pixels_in_region(r,bin_resolution,range))
 			regions_per_pixel[pixel].push_back(&r);
+		int totalNumZero = 0;
+		int totalNumTotal = 0;
+		cout << "Hi!!!!!\n";
 		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
+			//cout << "Hello1\n";
+			totalNumTotal++;
 			bins(pixel) = value_type(0);
 			auto pixel_range = range_of_pixel(pixel,bin_resolution,range);
+			int numSamples = 0;
+			double estimate = 0;
+			//if (pixel[0] == 283 && pixel[1] == 176) {
+			if (pixel[0] == 203 && pixel[1] == 106) {
+				cout << "Hello??? It's me" << endl;
+				cout << "i range: " << pixel_range.min(0) << " to " << pixel_range.max(0) << endl;
+				cout << "j range: " << pixel_range.min(1) << " to " << pixel_range.max(1) << endl;
+				cout << "k range: " << pixel_range.min(2) << " to " << pixel_range.max(2) << endl;
+				cout << "l range: " << pixel_range.min(3) << " to " << pixel_range.max(3) << endl;
+				for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=0.00005) {
+					//cout << "Hello, i = " << i << endl;
+					for (double j = pixel_range.min(1); j < pixel_range.max(1); j+=0.00005) {
+						//cout << "Hello, j = " << j << endl;
+						for (double k = 0; k < 1; k+=0.01) {
+							for (double l = 0; l < 1; l+=0.01) {
+								numSamples++;
+								graphingSample[0] = i;
+								graphingSample[1] = j;
+								graphingSample[2] = k;
+								graphingSample[3] = l;
+								auto [tempFValue] = f(graphingSample, rng, true);
+								/*if (tempFValue[0] != 0) {
+									cout << "Graphing sample: " << endl;
+									cout << graphingSample[0] << endl;
+									cout << graphingSample[1] << endl;
+									cout << graphingSample[2] << endl;
+									cout << graphingSample[3] << endl;
+									
+									cout << "Result of graphing that: " << endl;
+									for (auto tempFPart : tempFValue) {
+										cout << tempFPart << endl;
+									}
+								}*/
+								estimate += tempFValue[0];
+								
+								//cout << i << ", " << tempFValue[0] << ", " << tempFValue[1] << ", " << tempFValue[2] << endl;
+							}
+						}
+					}
+				}
+				estimate = estimate/numSamples;
+				cout << "Estimate: " << estimate << " (no adjustment for size) " << endl;
+				//estimate *= local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size())
+				estimate *= pixel_range.max(0)-pixel_range.min(0);
+				estimate *= pixel_range.max(1)-pixel_range.min(1);
+				cout << "Actually, probably " << estimate << endl;
+			}
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
 			//cout << "Hello???" << endl;
@@ -250,29 +351,129 @@ public:
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
-
+					if (pixel[0] == 283 && pixel[1] == 176) {
+					//if (regions_here[r]->approximation_at(sample)[1] > 0) {
+						//cout << "Approximation: " << regions_here[r]->approximation_at(sample)[1] << endl;
+					}
+					completeTotal++;
+					if (value[0] == 0) {
+						numZero++;
+					} else if (value[0] > 4.99 && value[0] < 5.01) {
+						totalFive++;
+					} else {
+						totalOther++;
+					}
+					if (value[0] > 0) {
+						//cout << "Found: \n";
+						//cout << sample[0] << "," << sample[1] << "," << sample[2] << "," << sample[3] << endl;
+					}
+					if (pixel[0] > 282 && pixel[0] < 284 && pixel[1] > 175 && pixel[1] < 177 && value[0] != 0) {
+					//if (pixel[0] > 282 && pixel[1] < 177 && value[0] != 0) {
+					//if (pixel[0] > 250 && pixel[0] < 325 && pixel[1] > 125 && pixel[1] < 225 && value[0] != 0) {
+						//cout << pixel[0] << ", " << pixel[1] << endl;
+						//cout << "Found it!!!\n";
+						//cout << "Not 0! " << value[0] << endl;
+					}
+					/*if (pixel[0] > 280 && pixel[0] < 285 && pixel[1] > 170 && pixel[1] < 180 && value[0] != 0) {
+						cout << pixel[0] << ", " << pixel[1] << endl;
+						cout << "Not 0 again! " << value[0] << endl;
+					}*/
 				}
 			} 
+			//cout << "Hello2\n";
             std::uniform_int_distribution<std::size_t> sample_region(std::size_t(0),regions_here.size()-1);
             //We randomly distribute the rest of samples among all regions 
+			int numZero = 0;
+			int numFive = 0;
+			int numOther = 0;
             for (std::size_t i = 0; i<samples_per_region_rest; ++i) {
 			    std::size_t r = sample_region(rng);
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				auto [value,sample] = sampler.sample(f,local_range,rng);
 				samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
+				if (pixel[0] == 283 && pixel[1] == 176) {
+					//cout << "Approximation: " << regions_here[r]->approximation_at(sample)[0] << endl;
+				}
+				if (value[0] == 0) {
+					numZero++;
+				} else if (value[0] > 4.99 && value[0] < 5.01) {
+					numFive++;
+					totalFive++;
+				} else {
+					numOther++;
+					totalOther++;
+				}
+				completeTotal++;
+				/*if (value[0] != 0 && (value[0] < 4.99 || value[0] > 5.01)) {
+					cout << value[0] << " versus " << (factor*value)[0] << endl;
+				}*/
+				
             }
+			if (numOther > 0) {
+				//cout << numZero << " zeros, " << numFive << " fives, and " << numOther << " that are neither 0 nor 5\n";
+			}
+			
 
-
+			double actualEstimate = 0;
+			double actualEstimate2 = 0;
 			auto a = alpha_calculator.alpha(samples);
 			//cout << "Hello???" << endl;
 			//cout << sampler << endl;
 			value_type residual = (std::get<0>(samples[0]) - a*std::get<1>(samples[0]));
-			for (std::size_t s=1; s<spp;++s)
+			numTotal = 0;
+			numZero = 0;
+			int numDiff = 0;
+			for (std::size_t s=1; s<spp;++s) {
 				residual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
+				if (pixel[0] == 283 && pixel[1] == 176) {
+					//cout << std::get<1>(samples[s])[0] << endl;
+				}
+				if (pixel[0] == 203 && pixel[1] == 106) {
+					cout << std::get<1>(samples[s])[0] << endl;
+				}
+				actualEstimate += std::get<1>(samples[s])[0];
+				actualEstimate2 += std::get<1>(samples[s])[2];
+				if (std::get<0>(samples[s])[0] != 0 && std::get<0>(samples[s])[0] != 5) {
+					numDiff++;
+				}
+				numTotal++;
+				if (std::get<0>(samples[s])[0] == 0) {
+					numZero++;
+				} else {
+					//cout << std::get<0>(samples[s])[0] << endl;
+				}
+			}
+
+			if (pixel[0] == 283 && pixel[1] == 176) {
+				//cout << "283 one\n";
+				//cout << "Their estimate(?): " << actualEstimate << endl;
+				//cout << "residual: " << residual[0]/double(spp) << endl;
+			}
+			if (pixel[0] == 203 && pixel[1] == 106) {
+				cout << "Red???" << endl;
+				cout << "Their estimate(?): " << actualEstimate << endl;
+				cout << "Another possibility: " << actualEstimate/double(spp) << endl;
+				cout << "residual: " << residual[0]/double(spp) << endl;
+				cout << "Blue??" << endl;
+				cout << "Their estimate(?): " << actualEstimate2 << endl;
+				cout << "Another possibility: " << actualEstimate2/double(spp) << endl;
+				cout << "residual: " << residual[2]/double(spp) << endl;
+			}
+			if (numZero == numTotal) {
+				totalNumZero++;
+				//cout << pixel[0] << ", " << pixel[1] << endl;
+			}
+			//cout << "Tested " << numTotal << "points\n";
+			//cout << "Of those, " << (numTotal-numZero) << " had non-zero values\n";
+			//cout << "Of those, " << numDiff << " had a value besides 0 or 5\n";
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
 		}
+		cout << "Tested " << totalNumTotal << "pixels\n";
+		cout << "Of those, " << (totalNumTotal - totalNumZero) << " had non-zero values\n";
+		cout << (completeTotal-totalOther-totalFive) << " zeros, " << totalFive << " fives, and " << totalOther << " that are neither 0 nor 5\n";
+		//cout << totalOther << " are not 5 or 0 of " << completeTotal << endl;
 	}
 	
 	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
