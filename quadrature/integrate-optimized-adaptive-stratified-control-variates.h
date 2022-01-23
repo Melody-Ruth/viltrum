@@ -218,14 +218,10 @@ public:
 		int totalOther = 0;
 		int totalFive = 0;
 		int completeTotal = 0;
-		for (double i = 0; i < 1; i+=0.1) {
+		/*for (double i = 0; i < 1; i+=0.1) {
 			for (double j = 0; j < 1; j+= 0.1) {
 				for (double k = 0; k < 1; k+=0.1) {
 					for (double l = 0; l < 1; l+= 0.1) {
-						/*graphingSample[0] = i;
-						graphingSample[1] = k;
-						graphingSample[2] = 0.355903;
-						graphingSample[3] = 0.0576333;*/
 						graphingSample[0] = 0.833705;
 						graphingSample[1] = 0.347211;
 						graphingSample[2] = j;
@@ -242,22 +238,11 @@ public:
 							cout << i << "," << k << "," << tempFValue[0] << endl;
 							cout << "Hello\n";
 						}
-						
-						//for (auto tempFPart : tempFValue) {
-							/*if (tempFPart != 0) {
-								numZero--;
-								break;
-							}*/
-							//cout << tempFPart << endl;
-						//}
-						/*if (tempFPart[0] == 0) {
-							numZero++;
-						}*/
 					}
 				}
 			}
-		}
-		cout << "Tested " << numTotal << "points\n";
+		}*/
+		//cout << "Tested " << numTotal << "points\n";
 		//cout << "Of those, " << (numTotal-numZero) << " had non-zero values\n";
 
 		cout << "Bin dimensions: " << DIMBINS << endl;
@@ -283,7 +268,7 @@ public:
 			regions_per_pixel[pixel].push_back(&r);
 		int totalNumZero = 0;
 		int totalNumTotal = 0;
-		cout << "Hi!!!!!\n";
+		//cout << "Hi!!!!!\n";
 		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
 			//cout << "Hello1\n";
 			totalNumTotal++;
@@ -292,7 +277,7 @@ public:
 			int numSamples = 0;
 			double estimate = 0;
 			//if (pixel[0] == 283 && pixel[1] == 176) {
-			if (pixel[0] == 203 && pixel[1] == 106) {
+			/*if (pixel[0] == 203 && pixel[1] == 106) {
 				cout << "Hello??? It's me" << endl;
 				cout << "i range: " << pixel_range.min(0) << " to " << pixel_range.max(0) << endl;
 				cout << "j range: " << pixel_range.min(1) << " to " << pixel_range.max(1) << endl;
@@ -310,7 +295,7 @@ public:
 								graphingSample[2] = k;
 								graphingSample[3] = l;
 								auto [tempFValue] = f(graphingSample, rng, true);
-								/*if (tempFValue[0] != 0) {
+								if (tempFValue[0] != 0) {
 									cout << "Graphing sample: " << endl;
 									cout << graphingSample[0] << endl;
 									cout << graphingSample[1] << endl;
@@ -321,7 +306,7 @@ public:
 									for (auto tempFPart : tempFValue) {
 										cout << tempFPart << endl;
 									}
-								}*/
+								}
 								estimate += tempFValue[0];
 								
 								//cout << i << ", " << tempFValue[0] << ", " << tempFValue[1] << ", " << tempFValue[2] << endl;
@@ -335,7 +320,7 @@ public:
 				estimate *= pixel_range.max(0)-pixel_range.min(0);
 				estimate *= pixel_range.max(1)-pixel_range.min(1);
 				cout << "Actually, probably " << estimate << endl;
-			}
+			}*/
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
 			//cout << "Hello???" << endl;
@@ -351,10 +336,10 @@ public:
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
-					if (pixel[0] == 283 && pixel[1] == 176) {
+					//if (pixel[0] == 283 && pixel[1] == 176) {
 					//if (regions_here[r]->approximation_at(sample)[1] > 0) {
 						//cout << "Approximation: " << regions_here[r]->approximation_at(sample)[1] << endl;
-					}
+					//}
 					completeTotal++;
 					if (value[0] == 0) {
 						numZero++;
@@ -363,17 +348,17 @@ public:
 					} else {
 						totalOther++;
 					}
-					if (value[0] > 0) {
+					//if (value[0] > 0) {
 						//cout << "Found: \n";
 						//cout << sample[0] << "," << sample[1] << "," << sample[2] << "," << sample[3] << endl;
-					}
-					if (pixel[0] > 282 && pixel[0] < 284 && pixel[1] > 175 && pixel[1] < 177 && value[0] != 0) {
+					//}
+					//if (pixel[0] > 282 && pixel[0] < 284 && pixel[1] > 175 && pixel[1] < 177 && value[0] != 0) {
 					//if (pixel[0] > 282 && pixel[1] < 177 && value[0] != 0) {
 					//if (pixel[0] > 250 && pixel[0] < 325 && pixel[1] > 125 && pixel[1] < 225 && value[0] != 0) {
 						//cout << pixel[0] << ", " << pixel[1] << endl;
 						//cout << "Found it!!!\n";
 						//cout << "Not 0! " << value[0] << endl;
-					}
+					//}
 					/*if (pixel[0] > 280 && pixel[0] < 285 && pixel[1] > 170 && pixel[1] < 180 && value[0] != 0) {
 						cout << pixel[0] << ", " << pixel[1] << endl;
 						cout << "Not 0 again! " << value[0] << endl;
@@ -392,10 +377,10 @@ public:
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				auto [value,sample] = sampler.sample(f,local_range,rng);
 				samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
-				if (pixel[0] == 283 && pixel[1] == 176) {
+				//if (pixel[0] == 283 && pixel[1] == 176) {
 					//cout << "Approximation: " << regions_here[r]->approximation_at(sample)[0] << endl;
-				}
-				if (value[0] == 0) {
+				//}
+				/*if (value[0] == 0) {
 					numZero++;
 				} else if (value[0] > 4.99 && value[0] < 5.01) {
 					numFive++;
@@ -404,15 +389,15 @@ public:
 					numOther++;
 					totalOther++;
 				}
-				completeTotal++;
+				completeTotal++;*/
 				/*if (value[0] != 0 && (value[0] < 4.99 || value[0] > 5.01)) {
 					cout << value[0] << " versus " << (factor*value)[0] << endl;
 				}*/
 				
             }
-			if (numOther > 0) {
+			//if (numOther > 0) {
 				//cout << numZero << " zeros, " << numFive << " fives, and " << numOther << " that are neither 0 nor 5\n";
-			}
+			//}
 			
 
 			double actualEstimate = 0;
