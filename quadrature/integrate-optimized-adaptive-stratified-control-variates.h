@@ -276,25 +276,30 @@ public:
 			auto pixel_range = range_of_pixel(pixel,bin_resolution,range);
 			int numSamples = 0;
 			double estimate = 0;
+			double iStep = (pixel_range.max(0)-pixel_range.min(0))/100;
 			//if (pixel[0] == 283 && pixel[1] == 176) {
-			/*if (pixel[0] == 203 && pixel[1] == 106) {
+			if (pixel[0] == 203 && pixel[1] == 106) {//0.158927, 0.148549, 0.866819, 0.251459
+				const auto& regions_here = regions_per_pixel[pixel];
+				cout << regions_here[29]->range() << endl;
 				cout << "Hello??? It's me" << endl;
 				cout << "i range: " << pixel_range.min(0) << " to " << pixel_range.max(0) << endl;
 				cout << "j range: " << pixel_range.min(1) << " to " << pixel_range.max(1) << endl;
 				cout << "k range: " << pixel_range.min(2) << " to " << pixel_range.max(2) << endl;
 				cout << "l range: " << pixel_range.min(3) << " to " << pixel_range.max(3) << endl;
-				for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=0.00005) {
+				for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=iStep) {
 					//cout << "Hello, i = " << i << endl;
-					for (double j = pixel_range.min(1); j < pixel_range.max(1); j+=0.00005) {
+					//for (double j = pixel_range.min(1); j < pixel_range.max(1); j+=0.005) {
 						//cout << "Hello, j = " << j << endl;
-						for (double k = 0; k < 1; k+=0.01) {
-							for (double l = 0; l < 1; l+=0.01) {
+						for (double k = 0; k < 1; k+=0.1) {
+							//for (double l = 0; l < 1; l+=0.1) {
 								numSamples++;
 								graphingSample[0] = i;
-								graphingSample[1] = j;
+								//graphingSample[1] = j;
+								graphingSample[1] = 0.148549;
 								graphingSample[2] = k;
-								graphingSample[3] = l;
-								auto [tempFValue] = f(graphingSample, rng, true);
+								//graphingSample[3] = l;
+								graphingSample[3] = 0.251459;
+								/*auto [tempFValue] = f(graphingSample, rng, true);
 								if (tempFValue[0] != 0) {
 									cout << "Graphing sample: " << endl;
 									cout << graphingSample[0] << endl;
@@ -307,12 +312,21 @@ public:
 										cout << tempFPart << endl;
 									}
 								}
-								estimate += tempFValue[0];
+								estimate += tempFValue[0];*/
+								//cout << "Graphing sample: " << endl;
+									//cout << graphingSample[0] << endl;
+									//out << graphingSample[1] << endl;
+									//cout << graphingSample[2] << endl;
+									//cout << graphingSample[3] << endl;
+									auto [tempFValue] = f(graphingSample, rng, true);
+									
+									auto tempApproxValue = regions_here[29]->approximation_at(graphingSample);
+									cout << i << ", " << k << ", " << tempFValue[0] << ", " << tempApproxValue[0] << ", " << (tempFValue[0]-tempApproxValue[0]) << endl;
 								
 								//cout << i << ", " << tempFValue[0] << ", " << tempFValue[1] << ", " << tempFValue[2] << endl;
-							}
+							//}
 						}
-					}
+					//}
 				}
 				estimate = estimate/numSamples;
 				cout << "Estimate: " << estimate << " (no adjustment for size) " << endl;
@@ -320,7 +334,7 @@ public:
 				estimate *= pixel_range.max(0)-pixel_range.min(0);
 				estimate *= pixel_range.max(1)-pixel_range.min(1);
 				cout << "Actually, probably " << estimate << endl;
-			}*/
+			}
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
 			//cout << "Hello???" << endl;
@@ -336,10 +350,10 @@ public:
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
-					//if (pixel[0] == 283 && pixel[1] == 176) {
-					//if (regions_here[r]->approximation_at(sample)[1] > 0) {
-						//cout << "Approximation: " << regions_here[r]->approximation_at(sample)[1] << endl;
-					//}
+					if (pixel[0] == 203 && pixel[1] == 106) {
+					//if (regions_here[r]->approximation_at(sample)[0] > 0) {
+						//cout << "Approximation at " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << " from region " << r << " is " << regions_here[r]->approximation_at(sample)[0] << endl;
+					}
 					completeTotal++;
 					if (value[0] == 0) {
 						numZero++;
@@ -415,7 +429,7 @@ public:
 					//cout << std::get<1>(samples[s])[0] << endl;
 				}
 				if (pixel[0] == 203 && pixel[1] == 106) {
-					cout << std::get<1>(samples[s])[0] << endl;
+					//cout << std::get<1>(samples[s])[0] << endl;
 				}
 				actualEstimate += std::get<1>(samples[s])[0];
 				actualEstimate2 += std::get<1>(samples[s])[2];
@@ -430,11 +444,7 @@ public:
 				}
 			}
 
-			if (pixel[0] == 283 && pixel[1] == 176) {
-				//cout << "283 one\n";
-				//cout << "Their estimate(?): " << actualEstimate << endl;
-				//cout << "residual: " << residual[0]/double(spp) << endl;
-			}
+			
 			if (pixel[0] == 203 && pixel[1] == 106) {
 				cout << "Red???" << endl;
 				cout << "Their estimate(?): " << actualEstimate << endl;
