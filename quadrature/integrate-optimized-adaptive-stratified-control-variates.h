@@ -278,41 +278,37 @@ public:
 			double estimate = 0;
 			double iStep = (pixel_range.max(0)-pixel_range.min(0))/100;
 			//if (pixel[0] == 283 && pixel[1] == 176) {
-			if (pixel[0] == 203 && pixel[1] == 106) {//0.158927, 0.148549, 0.866819, 0.251459
+			if (pixel[0] == 226 && pixel[1] == 17) {
+			//if (pixel[0] == 203 && pixel[1] == 106) {//0.158927, 0.148549, 0.866819, 0.251459
+			//0.442578,0.0454583,0.128979,0.831627 (region 166)
 				const auto& regions_here = regions_per_pixel[pixel];
-				cout << regions_here[29]->range() << endl;
-				cout << "Hello??? It's me" << endl;
+				//cout << (regions_here[29]->range()).maxMinString() << endl;
+				
+				for (int i = 166; i < 167; i++) {
+					cout << "Min and max for region " << i << endl;
+					for (auto test : regions_here[i]->range()) {
+						cout << test[0] << ", " << test[1] << ", " << test[2] << ", " << test[3] << endl;
+					}
+				}
+				cout << "Hello??? It's I" << endl;
 				cout << "i range: " << pixel_range.min(0) << " to " << pixel_range.max(0) << endl;
 				cout << "j range: " << pixel_range.min(1) << " to " << pixel_range.max(1) << endl;
 				cout << "k range: " << pixel_range.min(2) << " to " << pixel_range.max(2) << endl;
 				cout << "l range: " << pixel_range.min(3) << " to " << pixel_range.max(3) << endl;
-				for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=iStep) {
+				//for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=iStep) {
+				for (double i = 0.4375; i < 0.5; i+=0.005) {
 					//cout << "Hello, i = " << i << endl;
 					//for (double j = pixel_range.min(1); j < pixel_range.max(1); j+=0.005) {
 						//cout << "Hello, j = " << j << endl;
-						for (double k = 0; k < 1; k+=0.1) {
+						for (double k = 0.125; k < 0.15625; k+=0.001) {
 							//for (double l = 0; l < 1; l+=0.1) {
 								numSamples++;
 								graphingSample[0] = i;
 								//graphingSample[1] = j;
-								graphingSample[1] = 0.148549;
+								graphingSample[1] = 0.0454583;
 								graphingSample[2] = k;
 								//graphingSample[3] = l;
-								graphingSample[3] = 0.251459;
-								/*auto [tempFValue] = f(graphingSample, rng, true);
-								if (tempFValue[0] != 0) {
-									cout << "Graphing sample: " << endl;
-									cout << graphingSample[0] << endl;
-									cout << graphingSample[1] << endl;
-									cout << graphingSample[2] << endl;
-									cout << graphingSample[3] << endl;
-									
-									cout << "Result of graphing that: " << endl;
-									for (auto tempFPart : tempFValue) {
-										cout << tempFPart << endl;
-									}
-								}
-								estimate += tempFValue[0];*/
+								graphingSample[3] = 0.831627;
 								//cout << "Graphing sample: " << endl;
 									//cout << graphingSample[0] << endl;
 									//out << graphingSample[1] << endl;
@@ -320,8 +316,8 @@ public:
 									//cout << graphingSample[3] << endl;
 									auto [tempFValue] = f(graphingSample, rng, true);
 									
-									auto tempApproxValue = regions_here[29]->approximation_at(graphingSample);
-									cout << i << ", " << k << ", " << tempFValue[0] << ", " << tempApproxValue[0] << ", " << (tempFValue[0]-tempApproxValue[0]) << endl;
+									auto tempApproxValue = regions_here[166]->approximation_at(graphingSample);
+									cout << i << ", " << k << ", " << tempFValue[1] << ", " << tempApproxValue[1] << ", " << (tempFValue[1]-tempApproxValue[1]) << endl;
 								
 								//cout << i << ", " << tempFValue[0] << ", " << tempFValue[1] << ", " << tempFValue[2] << endl;
 							//}
@@ -338,11 +334,16 @@ public:
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
 			//cout << "Hello???" << endl;
+
 			//cout << "Number of regions associated with this pixel: " << regions_here.size() << ", spp: " << spp << ", samples per region: " << samples_per_region << endl;
 			//cout << samples_per_region << endl;
             std::size_t samples_per_region_rest = spp % regions_here.size();
 			std::vector<std::tuple<value_type,value_type>> samples; samples.reserve(spp);
-			
+			if (pixel[0] == 226 && pixel[1] == 17) {
+				//cout << "Number of regions associated with this pixel: " << regions_here.size() << ", spp: " << spp << ", samples per region: " << samples_per_region << endl;
+			}
+			double min0 = 1000, min1 = 1000, min2 = 1000, min3 = 1000;
+			double max0 = -1000, max1 = -1000, max2 = -1000, max3 = -1000;
             //First: stratified distribution of samples (uniformly)
 			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
@@ -350,9 +351,44 @@ public:
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
-					if (pixel[0] == 203 && pixel[1] == 106) {
+					//if (pixel[0] == 203 && pixel[1] == 106) {
 					//if (regions_here[r]->approximation_at(sample)[0] > 0) {
 						//cout << "Approximation at " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << " from region " << r << " is " << regions_here[r]->approximation_at(sample)[0] << endl;
+					//}
+					/*if (pixel[0] == 203 && pixel[1] == 106 && r == 29) {
+						cout << "hello" << endl;
+					}*/
+					//if (r == 29 && pixel[0] == 203 && pixel[1] == 106) {
+					if (pixel[0] == 226 && pixel[1] == 17) {
+						cout << "Hello?????? Pixel 226, 17 here\n";
+					}
+					if (r == 29 && pixel[0] == 226 && pixel[1] == 17) {
+						cout << sample[0] << endl;
+						if (sample[0] < min0) {
+							min0 = sample[0];
+						}
+						if (sample[1] < min1) {
+							min1 = sample[1];
+						}
+						if (sample[2] < min2) {
+							min2 = sample[2];
+						}
+						if (sample[3] < min3) {
+							min3 = sample[3];
+						}
+						if (sample[0] > max0) {
+							max0 = sample[0];
+						}
+						if (sample[1] > max1) {
+							max1 = sample[1];
+						}
+						if (sample[2] > max2) {
+							max2 = sample[2];
+						}
+						if (sample[3] > max3) {
+							max3 = sample[3];
+						}
+						//cout << "region 29 example: " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << endl;
 					}
 					completeTotal++;
 					if (value[0] == 0) {
@@ -378,19 +414,34 @@ public:
 						cout << "Not 0 again! " << value[0] << endl;
 					}*/
 				}
+				//f (r == 29 && pixel[0] == 203 && pixel[1] == 106) {
+				if (r == 29 && pixel[0] == 226 && pixel[1] == 17) {
+					cout << "Region 29 actual range: " << endl;
+					cout << min0 << ", " << min1 << ", " << min2 << ", " << min3 << endl;
+					cout << max0 << ", " << max1 << ", " << max2 << ", " << max3 << endl;
+				}
+			
 			} 
+			
 			//cout << "Hello2\n";
             std::uniform_int_distribution<std::size_t> sample_region(std::size_t(0),regions_here.size()-1);
             //We randomly distribute the rest of samples among all regions 
 			int numZero = 0;
 			int numFive = 0;
 			int numOther = 0;
+			int firstR = -1;
             for (std::size_t i = 0; i<samples_per_region_rest; ++i) {
 			    std::size_t r = sample_region(rng);
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				auto [value,sample] = sampler.sample(f,local_range,rng);
 				samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
+				if (pixel[0] == 226 && pixel[1] == 17 && (firstR == -1 || firstR == r)) {
+					cout << value[0] << " from ";
+					firstR = r;
+					cout << sample[0] << "," << sample[1] << "," << sample[2] << "," << sample[3] << " (region " << r << ")" << endl;
+					//cout << "Hello?????? Pixel 226, 17 here take 2\n";
+				}
 				//if (pixel[0] == 283 && pixel[1] == 176) {
 					//cout << "Approximation: " << regions_here[r]->approximation_at(sample)[0] << endl;
 				//}
