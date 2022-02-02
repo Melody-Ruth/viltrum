@@ -9,6 +9,7 @@ using namespace std;
 #include <vector>
 #include <array>
 #include <type_traits>
+#include <fstream> 
 
 namespace viltrum {
 
@@ -218,6 +219,7 @@ public:
 		int totalOther = 0;
 		int totalFive = 0;
 		int completeTotal = 0;
+		ofstream ofs("pixelValues.txt", ios::out);
 		/*for (double i = 0; i < 1; i+=0.1) {
 			for (double j = 0; j < 1; j+= 0.1) {
 				for (double k = 0; k < 1; k+=0.1) {
@@ -515,6 +517,11 @@ public:
 			//cout << "Of those, " << numDiff << " had a value besides 0 or 5\n";
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
+			//Printing out final pixel color error purposes:
+			ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
+			/*if (pixel[0] == 266 && pixel[1] == 17) {
+				cout << "Final result: " << bins(pixel)[0] << ", " << bins(pixel)[1] << ", " << bins(pixel)[2] << endl;
+			}*/
 		}
 		cout << "Tested " << totalNumTotal << "pixels\n";
 		cout << "Of those, " << (totalNumTotal - totalNumZero) << " had non-zero values\n";
@@ -544,6 +551,7 @@ public:
 	template<typename Bins, std::size_t DIMBINS, typename F, typename Float, std::size_t DIM>
 	void integrate(Bins& bins, const std::array<std::size_t,DIMBINS>& bin_resolution, const F& f, const Range<Float,DIM>& range) const {
         auto regions = region_generator.compute_regions(f,range);
+		ofstream ofs("pixelValues.txt", ios::out);
 		using value_type = decltype(f(range.min()));
 		using R = typename decltype(regions)::value_type;
 		vector_dimensions<std::vector<const R*>,DIMBINS> regions_per_pixel(bin_resolution);
@@ -600,6 +608,7 @@ public:
 				residual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
+			ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
 		}
 		//cout << "Samples per regions, count\n";
 		/*for (auto myPair : samplesPerRegionCount) {
