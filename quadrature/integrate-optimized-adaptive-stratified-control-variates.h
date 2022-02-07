@@ -286,10 +286,10 @@ public:
 				const auto& regions_here = regions_per_pixel[pixel];
 				//cout << (regions_here[29]->range()).maxMinString() << endl;
 				
-				for (int i = 166; i < 167; i++) {
-					cout << "Min and max for region " << i << endl;
+				for (int i = 337; i < 338; i++) {
+					//cout << "Min and max for region " << i << endl;
 					for (auto test : regions_here[i]->range()) {
-						cout << test[0] << ", " << test[1] << ", " << test[2] << ", " << test[3] << endl;
+						//cout << test[0] << ", " << test[1] << ", " << test[2] << ", " << test[3] << endl;
 					}
 				}
 				cout << "Hello??? It's I" << endl;
@@ -298,11 +298,11 @@ public:
 				cout << "k range: " << pixel_range.min(2) << " to " << pixel_range.max(2) << endl;
 				cout << "l range: " << pixel_range.min(3) << " to " << pixel_range.max(3) << endl;
 				//for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=iStep) {
-				for (double i = 0.4375; i < 0.5; i+=0.005) {
+				for (double i = 0.4375; i < 0.5; i+=0.5) {
 					//cout << "Hello, i = " << i << endl;
 					//for (double j = pixel_range.min(1); j < pixel_range.max(1); j+=0.005) {
 						//cout << "Hello, j = " << j << endl;
-						for (double k = 0.125; k < 0.15625; k+=0.001) {
+						for (double k = 0.25; k < 0.3125; k+=0.1) {
 							//for (double l = 0; l < 1; l+=0.1) {
 								numSamples++;
 								graphingSample[0] = i;
@@ -318,8 +318,8 @@ public:
 									//cout << graphingSample[3] << endl;
 									auto [tempFValue] = f(graphingSample, rng, true);
 									
-									auto tempApproxValue = regions_here[166]->approximation_at(graphingSample);
-									cout << i << ", " << k << ", " << tempFValue[1] << ", " << tempApproxValue[1] << ", " << (tempFValue[1]-tempApproxValue[1]) << endl;
+									auto tempApproxValue = regions_here[337]->approximation_at(graphingSample);
+									//cout << i << ", " << k << ", " << tempFValue[1] << ", " << tempApproxValue[1] << ", " << (tempFValue[1]-tempApproxValue[1]) << endl;
 								
 								//cout << i << ", " << tempFValue[0] << ", " << tempFValue[1] << ", " << tempFValue[2] << endl;
 							//}
@@ -346,6 +346,8 @@ public:
 			}
 			double min0 = 1000, min1 = 1000, min2 = 1000, min3 = 1000;
 			double max0 = -1000, max1 = -1000, max2 = -1000, max3 = -1000;
+			double regionToGraph = 0;
+			double setJ = 0, setL = 0;
             //First: stratified distribution of samples (uniformly)
 			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
@@ -354,9 +356,15 @@ public:
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
 					//if (pixel[0] == 203 && pixel[1] == 106) {
-					//if (regions_here[r]->approximation_at(sample)[0] > 0) {
-						//cout << "Approximation at " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << " from region " << r << " is " << regions_here[r]->approximation_at(sample)[0] << endl;
-					//}
+					/*if (pixel[0] == 226 && pixel[1] == 17 && regions_here[r]->approximation_at(sample)[1] > 0) {
+						cout << "Approximation at " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << " from region " << r << " is " << regions_here[r]->approximation_at(sample)[0] << endl;
+					}*/
+					if (pixel[0] == 226 && pixel[1] == 17 && value[1] > 0) {
+						setJ = sample[1];
+						setL = sample[3];
+						cout << "Actual value at " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << " from region " << r << " is " << value[1] << endl;
+						regionToGraph = r;
+					}
 					/*if (pixel[0] == 203 && pixel[1] == 106 && r == 29) {
 						cout << "hello" << endl;
 					}*/
@@ -417,11 +425,11 @@ public:
 					}*/
 				}
 				//f (r == 29 && pixel[0] == 203 && pixel[1] == 106) {
-				if (r == 29 && pixel[0] == 226 && pixel[1] == 17) {
+				/*if (r == 29 && pixel[0] == 226 && pixel[1] == 17) {
 					cout << "Region 29 actual range: " << endl;
 					cout << min0 << ", " << min1 << ", " << min2 << ", " << min3 << endl;
 					cout << max0 << ", " << max1 << ", " << max2 << ", " << max3 << endl;
-				}
+				}*/
 			
 			} 
 			
@@ -438,12 +446,18 @@ public:
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				auto [value,sample] = sampler.sample(f,local_range,rng);
 				samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
-				if (pixel[0] == 226 && pixel[1] == 17 && (firstR == -1 || firstR == r)) {
+				/*if (pixel[0] == 226 && pixel[1] == 17 && (firstR == -1 || firstR == r)) {
 					cout << value[0] << " from ";
 					firstR = r;
 					cout << sample[0] << "," << sample[1] << "," << sample[2] << "," << sample[3] << " (region " << r << ")" << endl;
 					//cout << "Hello?????? Pixel 226, 17 here take 2\n";
-				}
+				}*/
+				/*if (pixel[0] == 226 && pixel[1] == 17 && value[1] > 0) {
+					setJ = sample[1];
+					setL = sample[3];
+					cout << "Actual value at " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << " from region " << r << " is " << value[1] << endl;
+					regionToGraph = r;
+				}*/
 				//if (pixel[0] == 283 && pixel[1] == 176) {
 					//cout << "Approximation: " << regions_here[r]->approximation_at(sample)[0] << endl;
 				//}
@@ -466,6 +480,72 @@ public:
 				//cout << numZero << " zeros, " << numFive << " fives, and " << numOther << " that are neither 0 nor 5\n";
 			//}
 			
+			double iStart, iEnd, kStart, kEnd;
+			
+			//Print integrand value and approx. value for various i and k values for a region that isn't entirely zero
+			if (pixel[0] == 226 && pixel[1] == 17) {
+				cout << "Decided to graph " << regionToGraph << endl;
+				const auto& regions_here = regions_per_pixel[pixel];
+
+				//auto test = regions_here[regionToGraph]->range().begin();
+				iStart = regions_here[regionToGraph]->range()[0][0];
+				kStart = regions_here[regionToGraph]->range()[0][2];
+				//test++;
+				iEnd = regions_here[regionToGraph]->range()[1][0];
+				kEnd = regions_here[regionToGraph]->range()[1][2];
+				
+				for (double i = iStart; i < iEnd; i+=(iEnd-iStart)/50) {
+					for (double k = kStart; k < kEnd; k+=(kEnd-kStart)/50) {
+						numSamples++;
+						graphingSample[0] = i;
+						graphingSample[1] = setJ;
+						graphingSample[2] = k;
+						graphingSample[3] = setL;
+						auto [tempFValue] = f(graphingSample, rng, true);
+						
+						auto tempApproxValue = regions_here[regionToGraph]->approximation_at(graphingSample);
+						cout << i << ", " << k << ", " << tempFValue[1] << ", " << tempApproxValue[1] << ", " << (tempFValue[1]-tempApproxValue[1]) << endl;
+					}
+				}
+
+				//Error comparison:
+				/*auto local_range = pixel_range.intersection_large(regions_here[regionToGraph]->range());
+				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
+				std::vector<std::tuple<value_type,value_type>> defaultSamples; defaultSamples.reserve(samples_per_region);
+				std::vector<std::tuple<value_type,value_type>> antitheticSamples; antitheticSamples.reserve(samples_per_region);
+				std::vector<std::tuple<value_type,value_type>> groundTruthSamples; groundTruthSamples.reserve(100*samples_per_region);
+				
+				for (std::size_t s = 0; s<samples_per_region; ++s) {
+					auto [value,sample] = sampler.sample(f,local_range,rng);
+					defaultSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
+				}
+
+				for (std::size_t s = 0; s<samples_per_region/2; ++s) {
+					auto [value,sample] = sampler.sample(f,local_range,rng);
+					antitheticSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
+					auto [value2,sample2] = sampler.sampleOpposite(f,local_range,rng,sample);
+					antitheticSamples.push_back(std::make_tuple(factor*value2, factor*regions_here[regionToGraph]->approximation_at(sample2)));
+
+				}
+				if (samples_per_region % 2 != 0) {
+					//non-antithetic extra
+					auto [value,sample] = sampler.sample(f,local_range,rng);
+					antitheticSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
+				}
+
+				for (std::size_t s = 0; s<samples_per_region * 100; ++s) {
+					auto [value,sample] = sampler.sample(f,local_range,rng);
+					groundTruthSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
+				}
+
+				auto a = alpha_calculator.alpha(samples);
+				value_type defaultResidual = (std::get<0>(defaultSamples[0]) - a*std::get<1>(defaultSamples[0]));
+				value_type antitheticResidual = (std::get<0>(antitheticSamples[0]) - a*std::get<1>(antitheticSamples[0]));
+				value_type groundTruthResidual = (std::get<0>(antitheticSamples[0]) - a*std::get<1>(antitheticSamples[0]));
+				for (std::size_t s=1; s<samples_per_region;++s) {
+					defaultResidual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
+				}*/
+			}
 
 			double actualEstimate = 0;
 			double actualEstimate2 = 0;
