@@ -220,6 +220,22 @@ public:
 		int totalFive = 0;
 		int foundOne = 0;
 		bool justFoundOne = false;
+		int numRegionsZeroNoSamples = 0;
+		int numRegionsZeroOneSample = 0;
+		int numRegionsZeroTwoSamples = 0;
+		int numRegionsZeroMoreSamples = 0;
+		int numRegionsNonZeroNoSamples = 0;
+		int numRegionsNonZeroOneSample = 0;
+		int numRegionsNonZeroTwoSamples = 0;
+		int numRegionsNonZeroMoreSamples = 0;
+		int numRegionsZeroNoSamples2 = 0;
+		int numRegionsZeroOneSample2 = 0;
+		int numRegionsZeroTwoSamples2 = 0;
+		int numRegionsZeroMoreSamples2 = 0;
+		int numRegionsNonZeroNoSamples2 = 0;
+		int numRegionsNonZeroOneSample2 = 0;
+		int numRegionsNonZeroTwoSamples2 = 0;
+		int numRegionsNonZeroMoreSamples2 = 0;
 		int completeTotal = 0;
 		ofstream ofs("pixelValues.txt", ios::out);
 		ofstream ofs2("graph7.txt", ios::out);
@@ -353,7 +369,8 @@ public:
 			double max0 = -1000, max1 = -1000, max2 = -1000, max3 = -1000;
 			double regionToGraph = 0;
 			double setJ = 0, setL = 0;
-			boolean nonZeroPart = false;
+			bool nonZeroPart = false;
+			bool nonZeroApproxPart = false;
             //First: stratified distribution of samples (uniformly)
 			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
@@ -361,8 +378,57 @@ public:
 				nonZeroPart = false;
 				for (int i = 0; i < 100; i++) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
-					if (value[1] > 0) {
+					auto approx = regions_here[r]->approximation_at(sample);
+					if (abs(value[1]) > 0) {
 						nonZeroPart = true;
+					}
+					if (abs(approx[1]) > 0) {
+						nonZeroApproxPart = true;
+					}
+				}
+				if (nonZeroPart) {
+					if (nonZeroApproxPart) {
+						if (samples_per_region == 0) {
+							numRegionsNonZeroNoSamples++;
+						} else if (samples_per_region == 1) {
+							numRegionsNonZeroOneSample++;
+						} else if (samples_per_region == 2) {
+							numRegionsNonZeroTwoSamples++;
+						} else {
+							numRegionsNonZeroMoreSamples++;
+						}
+					} else {
+						if (samples_per_region == 0) {
+							numRegionsNonZeroNoSamples2++;
+						} else if (samples_per_region == 1) {
+							numRegionsNonZeroOneSample2++;
+						} else if (samples_per_region == 2) {
+							numRegionsNonZeroTwoSamples2++;
+						} else {
+							numRegionsNonZeroMoreSamples2++;
+						}
+					}
+				} else {
+					if (nonZeroApproxPart) {
+						if (samples_per_region == 0) {
+							numRegionsZeroNoSamples++;
+						} else if (samples_per_region == 1) {
+							numRegionsZeroOneSample++;
+						} else if (samples_per_region == 2) {
+							numRegionsZeroTwoSamples++;
+						} else {
+							numRegionsZeroMoreSamples++;
+						}
+					} else {
+						if (samples_per_region == 0) {
+							numRegionsZeroNoSamples2++;
+						} else if (samples_per_region == 1) {
+							numRegionsZeroOneSample2++;
+						} else if (samples_per_region == 2) {
+							numRegionsZeroTwoSamples2++;
+						} else {
+							numRegionsZeroMoreSamples2++;
+						}
 					}
 				}
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
@@ -691,6 +757,12 @@ public:
 		cout << "Of those, " << (totalNumTotal - totalNumZero) << " had non-zero values\n";
 		cout << (completeTotal-totalOther-totalFive) << " zeros, " << totalFive << " fives, and " << totalOther << " that are neither 0 nor 5\n";
 		//cout << totalOther << " are not 5 or 0 of " << completeTotal << endl;
+		cout << numRegionsNonZeroNoSamples << ", " << numRegionsNonZeroOneSample << ", " << numRegionsNonZeroTwoSamples;
+		cout << ", " << numRegionsZeroNoSamples << ", " << numRegionsZeroOneSample;
+		cout << ", " << numRegionsZeroTwoSamples;
+		cout << ", " << numRegionsNonZeroNoSamples2 << ", " << numRegionsNonZeroOneSample2 << ", " << numRegionsNonZeroTwoSamples2;
+		cout << ", " << numRegionsZeroNoSamples2 << ", " << numRegionsZeroOneSample2;
+		cout << ", " << numRegionsZeroTwoSamples2 << endl;
 	}
 	
 	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
