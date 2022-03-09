@@ -245,7 +245,7 @@ public:
 		double maxErrorForSlice = 0;
 		ofstream ofs("pixelValues.txt", ios::out);
 		ofstream ofs2("graph7.txt", ios::out);
-		for (double i = 0; i < 1; i+=0.01) {
+		/*for (double i = 0; i < 1; i+=0.01) {
 			//for (double j = 0; j < 1; j+= 0.1) {
 				for (double k = 0; k < 1; k+=0.01) {
 					//for (double l = 0; l < 1; l+= 0.1) {
@@ -260,14 +260,10 @@ public:
 						ofs2 << i << "," << k << "," << tempFValue[1] << "," << 0 << "," << 0 << endl;
 						//cout << tempFValue[0] << ", " << tempFValue[1] << ", " << tempFValue[2] << endl;
 						//numZero++;
-						/*if (tempFValue[0] != 0 && (tempFValue[0] < 4.9 || tempFValue[0] > 5.1)) {
-							cout << i << "," << k << "," << tempFValue[0] << endl;
-							cout << "Hello\n";
-						}*/
 					//}
 				}
 			//}
-		}
+		}*/
 		//cout << "Tested " << numTotal << "points\n";
 		//cout << "Of those, " << (numTotal-numZero) << " had non-zero values\n";
 
@@ -295,6 +291,7 @@ public:
 		int totalNumZero = 0;
 		int totalNumTotal = 0;
 		//cout << "Hi!!!!!\n";
+
 		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
 			justFoundOne = false;
 			//cout << "Hello1\n";
@@ -304,16 +301,15 @@ public:
 			int numSamples = 0;
 			double estimate = 0;
 			double iStep = (pixel_range.max(0)-pixel_range.min(0))/100;
-			
+
 			//if (pixel[0] == 283 && pixel[1] == 176) {
 			if (pixel[0] == 226 && pixel[1] == 17) {
 			//if (pixel[0] == 203 && pixel[1] == 106) {//0.158927, 0.148549, 0.866819, 0.251459
 			//0.442578,0.0454583,0.128979,0.831627 (region 166)
 				const auto& regions_here = regions_per_pixel[pixel];
-				
 				//cout << (regions_here[29]->range()).maxMinString() << endl;
 				
-				for (int i = 337; i < 338; i++) {
+				for (int i = 338; i < 338; i++) {
 					//cout << "Min and max for region " << i << endl;
 					for (auto test : regions_here[i]->range()) {
 						//cout << test[0] << ", " << test[1] << ", " << test[2] << ", " << test[3] << endl;
@@ -325,7 +321,7 @@ public:
 				cout << "k range: " << pixel_range.min(2) << " to " << pixel_range.max(2) << endl;
 				cout << "l range: " << pixel_range.min(3) << " to " << pixel_range.max(3) << endl;
 				//for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=iStep) {
-				for (double i = 0.4375; i < 0.5; i+=0.5) {
+				/*for (double i = 0.4375; i < 0.5; i+=0.5) {
 					//cout << "Hello, i = " << i << endl;
 					//for (double j = pixel_range.min(1); j < pixel_range.max(1); j+=0.005) {
 						//cout << "Hello, j = " << j << endl;
@@ -352,7 +348,7 @@ public:
 							//}
 						}
 					//}
-				}
+				}*/
 				estimate = estimate/numSamples;
 				cout << "Estimate: " << estimate << " (no adjustment for size) " << endl;
 				//estimate *= local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size())
@@ -360,8 +356,8 @@ public:
 				estimate *= pixel_range.max(1)-pixel_range.min(1);
 				cout << "Actually, probably " << estimate << endl;
 			}
+
 			const auto& regions_here = regions_per_pixel[pixel];
-			
 			std::size_t samples_per_region = spp / regions_here.size();
 			//cout << "Hello???" << endl;
 			if (pixel[0] == 226 && pixel[1] == 17) {
@@ -380,13 +376,13 @@ public:
 			double setJ = 0, setL = 0;
 			bool nonZeroPart = false;
 			bool nonZeroApproxPart = false;
-			
+
             //First: stratified distribution of samples (uniformly)
 			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				nonZeroPart = false;
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 0; i++) {
 					/*if (numRegionsNonZeroTwoSamples > 1000) {
 						break;
 					}*/
@@ -409,9 +405,8 @@ public:
 						} else if (samples_per_region == 1) {
 							numRegionsNonZeroOneSample++;
 						} else if (samples_per_region == 2) {
-							//cout << "counter++\n";
 							numRegionsNonZeroTwoSamples++;
-							
+							//cout << "counter++\n";
 							//int shouldUse = checkShouldUse(rng);
 							//if (numRegionsNonZeroTwoSamples <= 1000) {
 							//if (shouldUse >= 100) {
@@ -424,7 +419,7 @@ public:
 								std::vector<std::tuple<value_type,value_type>> defaultSamples; defaultSamples.reserve(numTrials*samples_per_region);
 								std::vector<std::tuple<value_type,value_type>> antitheticSamples; antitheticSamples.reserve(numTrials*samples_per_region);
 								std::vector<std::tuple<value_type,value_type>> groundTruthSamples; groundTruthSamples.reserve(numTrials*samples_per_region);
-								
+
 								//cout << "Samples per region here: " << samples_per_region << endl;
 
 								//cout << "region " << regionToGraph << ". Dimensions are i, j, k, and l. i is on the x axis and k is on the y axis. \nJ and L are fixed at " << setJ << " and " << setL << ", respectively. (Pixel " << pixel[0] << ", " << pixel[1] << ")" << endl;
@@ -448,7 +443,7 @@ public:
 									auto [value,sample] = sampler.sample(f,local_range,rng);
 									groundTruthSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
 								}
-								
+
 								auto a = alpha_calculator.alpha(samples);
 								value_type defaultResidual = (std::get<0>(defaultSamples[0]) - a*std::get<1>(defaultSamples[0]));
 								value_type antitheticResidual = (std::get<0>(antitheticSamples[0]) - a*std::get<1>(antitheticSamples[0]));
@@ -477,7 +472,7 @@ public:
 								avgAntitheticError /= numTrials;
 								avgDefaultError = sqrt(avgDefaultError);
 								avgAntitheticError = sqrt(avgAntitheticError);
-								
+
 								/*cout << avgDefaultError << " (theirs) versus " << avgAntitheticError << " (ours)" << endl;
 								cout << "Example: ";
 								cout << defaultResidual[1] << " (theirs) versus " << antitheticResidual[1] << " (ours) versus " << groundTruthResidual[1] << " (ground truth of residual) " << endl;*/
@@ -506,6 +501,7 @@ public:
 							numRegionsNonZeroOneSample2++;
 						} else if (samples_per_region == 2) {
 							numRegionsNonZeroTwoSamples2++;
+							//justFoundOne = true;
 						} else {
 							numRegionsNonZeroMoreSamples2++;
 						}
@@ -518,8 +514,6 @@ public:
 							numRegionsZeroOneSample++;
 						} else if (samples_per_region == 2) {
 							numRegionsZeroTwoSamples++;
-							//justFoundOne = true;
-							
 						} else {
 							numRegionsZeroMoreSamples++;
 						}
@@ -1138,4 +1132,33 @@ auto integrator_optimized_adaptive_stratified_control_variates(Nested&& nested, 
 		std::forward<Nested>(nested),std::forward<Error>(error),adaptive_iterations, spp, std::mt19937_64(seed));
 }
 
-template<typenam
+template<typename Nested, typename Error>
+auto integrator_optimized_perpixel_adaptive_stratified_control_variates(Nested&& nested, Error&& error, 
+		unsigned long adaptive_iterations, unsigned long spp, std::size_t seed = std::random_device()()) {
+			
+	return integrator_optimized_perpixel_adaptive_stratified_control_variates(
+		std::forward<Nested>(nested),std::forward<Error>(error),adaptive_iterations, spp, std::mt19937_64(seed));
+}
+
+template<typename Nested, typename Error>
+auto integrator_optimized_perregion_adaptive_stratified_control_variates(Nested&& nested, Error&& error, 
+		unsigned long adaptive_iterations, unsigned long spp, std::size_t seed = std::random_device()()) {
+			
+	return integrator_optimized_perregion_adaptive_stratified_control_variates(
+		std::forward<Nested>(nested),std::forward<Error>(error),adaptive_iterations, spp, std::mt19937_64(seed));
+}
+
+template<typename Nested, typename Error>
+auto integrator_alpha1_perregion_adaptive_stratified_control_variates(Nested&& nested, Error&& error, 
+		unsigned long adaptive_iterations, unsigned long spp, std::size_t seed = std::random_device()()) {
+			
+	return integrator_alpha1_perregion_adaptive_stratified_control_variates(
+		std::forward<Nested>(nested),std::forward<Error>(error),adaptive_iterations, spp, std::mt19937_64(seed));
+}
+
+}
+
+
+
+
+
