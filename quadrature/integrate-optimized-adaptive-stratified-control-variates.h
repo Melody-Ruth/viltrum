@@ -325,7 +325,7 @@ public:
 				cout << "k range: " << pixel_range.min(2) << " to " << pixel_range.max(2) << endl;
 				cout << "l range: " << pixel_range.min(3) << " to " << pixel_range.max(3) << endl;
 				//for (double i = pixel_range.min(0); i < pixel_range.max(0); i+=iStep) {
-				for (double i = 0.4375; i < 0.5; i+=0.5) {
+				/*for (double i = 0.4375; i < 0.5; i+=0.5) {
 					//cout << "Hello, i = " << i << endl;
 					//for (double j = pixel_range.min(1); j < pixel_range.max(1); j+=0.005) {
 						//cout << "Hello, j = " << j << endl;
@@ -352,8 +352,8 @@ public:
 							//}
 						}
 					//}
-				}
-				estimate = estimate/numSamples;
+				}*/
+				//estimate = estimate/numSamples;
 				cout << "Estimate: " << estimate << " (no adjustment for size) " << endl;
 				//estimate *= local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size())
 				estimate *= pixel_range.max(0)-pixel_range.min(0);
@@ -386,7 +386,7 @@ public:
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				nonZeroPart = false;
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 100; i++) {
 					/*if (numRegionsNonZeroTwoSamples > 1000) {
 						break;
 					}*/
@@ -833,14 +833,14 @@ public:
 
 			
 			if (pixel[0] == 203 && pixel[1] == 106) {
-				cout << "Red???" << endl;
+				/*cout << "Red???" << endl;
 				cout << "Their estimate(?): " << actualEstimate << endl;
 				cout << "Another possibility: " << actualEstimate/double(spp) << endl;
 				cout << "residual: " << residual[0]/double(spp) << endl;
 				cout << "Blue??" << endl;
 				cout << "Their estimate(?): " << actualEstimate2 << endl;
 				cout << "Another possibility: " << actualEstimate2/double(spp) << endl;
-				cout << "residual: " << residual[2]/double(spp) << endl;
+				cout << "residual: " << residual[2]/double(spp) << endl;*/
 			}
 			if (numZero == numTotal) {
 				totalNumZero++;
@@ -852,7 +852,7 @@ public:
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
 			//Printing out final pixel color error purposes:
-			ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
+			//ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
 			/*if (pixel[0] == 266 && pixel[1] == 17) {
 				cout << "Final result: " << bins(pixel)[0] << ", " << bins(pixel)[1] << ", " << bins(pixel)[2] << endl;
 			}*/
@@ -867,10 +867,10 @@ public:
 		//cout << ", " << numRegionsNonZeroNoSamples2 << ", " << numRegionsNonZeroOneSample2 << ", " << numRegionsNonZeroTwoSamples2;
 		//cout << ", " << numRegionsZeroNoSamples2 << ", " << numRegionsZeroOneSample2;
 		//cout << ", " << numRegionsZeroTwoSamples2 << endl;
-		cout << "Ended up with " << numSlices << endl;
-		cout << "This slice had an average percent difference in error of " << avgErrorForSlice * (100/numSlices) << endl;
-		cout << "This slice had an average percent difference (adjusted for factor) in error of " << avgErrorForSliceWFactor * (100/(numSlices * totalFactor)) << endl;
-		cout << "This slice had a max percent difference in error of " << maxErrorForSlice * 100 << endl;
+		//cout << "Ended up with " << numSlices << endl;
+		//cout << "This slice had an average percent difference in error of " << avgErrorForSlice * (100/numSlices) << endl;
+		//cout << "This slice had an average percent difference (adjusted for factor) in error of " << avgErrorForSliceWFactor * (100/(numSlices * totalFactor)) << endl;
+		//cout << "This slice had a max percent difference in error of " << maxErrorForSlice * 100 << endl;
 	}
 	
 	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
