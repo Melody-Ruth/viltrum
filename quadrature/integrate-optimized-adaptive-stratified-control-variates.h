@@ -236,8 +236,9 @@ public:
 		int numRegionsNonZeroOneSample2 = 0;
 		int numRegionsNonZeroTwoSamples2 = 0;
 		int numRegionsNonZeroMoreSamples2 = 0;
+		int numRegionsTotal = 0;
 		int completeTotal = 0;
-		std::uniform_int_distribution<int> checkShouldUse(0,100);
+		std::uniform_int_distribution<int> checkShouldUse(0,100000);
 		double avgErrorForSlice = 0;
 		double totalFactor = 0;
 		double avgErrorForSliceWFactor = 0;
@@ -382,7 +383,8 @@ public:
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
 				nonZeroPart = false;
-				for (int i = 0; i < 100; i++) {
+				numRegionsTotal++;
+				for (int i = 0; i < 10; i++) {
 					/*if (numRegionsNonZeroTwoSamples > 1000) {
 						break;
 					}*/
@@ -410,8 +412,43 @@ public:
 							//int shouldUse = checkShouldUse(rng);
 							//if (numRegionsNonZeroTwoSamples <= 1000) {
 							//if (shouldUse >= 100) {
-							if (false) {
-								//Error comparison:
+							//if (false) {
+								
+								//cout << toDoStuffWith << "," << factor << endl;
+							//}
+						} else {
+							numRegionsNonZeroMoreSamples++;
+						}
+					} else {
+						if (samples_per_region == 0) {
+							numRegionsNonZeroNoSamples2++;
+						} else if (samples_per_region == 1) {
+							numRegionsNonZeroOneSample2++;
+						} else if (samples_per_region == 2) {
+							numRegionsNonZeroTwoSamples2++;
+							//justFoundOne = true;
+						} else {
+							numRegionsNonZeroMoreSamples2++;
+						}
+					}
+				} else {
+					if (nonZeroApproxPart) {
+						if (samples_per_region == 0) {
+							numRegionsZeroNoSamples++;
+						} else if (samples_per_region == 1) {
+							numRegionsZeroOneSample++;
+						} else if (samples_per_region == 2) {
+							numRegionsZeroTwoSamples++;
+						} else {
+							numRegionsZeroMoreSamples++;
+						}
+					} else {
+						if (samples_per_region == 0) {
+							numRegionsZeroNoSamples2++;
+						} else if (samples_per_region == 1) {
+							//Error comparison:
+							int shouldUse = checkShouldUse(rng);
+							if (shouldUse >= 100000) {
 								double numTrials = 100;
 								double regionToGraph = r;
 								auto local_range = pixel_range.intersection_large(regions_here[regionToGraph]->range());
@@ -489,38 +526,7 @@ public:
 								if (toDoStuffWith > maxErrorForSlice) {
 									maxErrorForSlice = toDoStuffWith;
 								}
-								//cout << toDoStuffWith << "," << factor << endl;
 							}
-						} else {
-							numRegionsNonZeroMoreSamples++;
-						}
-					} else {
-						if (samples_per_region == 0) {
-							numRegionsNonZeroNoSamples2++;
-						} else if (samples_per_region == 1) {
-							numRegionsNonZeroOneSample2++;
-						} else if (samples_per_region == 2) {
-							numRegionsNonZeroTwoSamples2++;
-							//justFoundOne = true;
-						} else {
-							numRegionsNonZeroMoreSamples2++;
-						}
-					}
-				} else {
-					if (nonZeroApproxPart) {
-						if (samples_per_region == 0) {
-							numRegionsZeroNoSamples++;
-						} else if (samples_per_region == 1) {
-							numRegionsZeroOneSample++;
-						} else if (samples_per_region == 2) {
-							numRegionsZeroTwoSamples++;
-						} else {
-							numRegionsZeroMoreSamples++;
-						}
-					} else {
-						if (samples_per_region == 0) {
-							numRegionsZeroNoSamples2++;
-						} else if (samples_per_region == 1) {
 							numRegionsZeroOneSample2++;
 						} else if (samples_per_region == 2) {
 							numRegionsZeroTwoSamples2++;
@@ -856,15 +862,15 @@ public:
 		//cout << (completeTotal-totalOther-totalFive) << " zeros, " << totalFive << " fives, and " << totalOther << " that are neither 0 nor 5\n";
 		//cout << totalOther << " are not 5 or 0 of " << completeTotal << endl;
 		cout << numRegionsNonZeroNoSamples << ", " << numRegionsNonZeroOneSample << ", " << numRegionsNonZeroTwoSamples;
-		//cout << ", " << numRegionsZeroNoSamples << ", " << numRegionsZeroOneSample;
-		//cout << ", " << numRegionsZeroTwoSamples;
-		//cout << ", " << numRegionsNonZeroNoSamples2 << ", " << numRegionsNonZeroOneSample2 << ", " << numRegionsNonZeroTwoSamples2;
-		//cout << ", " << numRegionsZeroNoSamples2 << ", " << numRegionsZeroOneSample2;
-		//cout << ", " << numRegionsZeroTwoSamples2 << endl;
+		cout << ", " << numRegionsZeroNoSamples << ", " << numRegionsZeroOneSample;
+		cout << ", " << numRegionsZeroTwoSamples;
+		cout << ", " << numRegionsNonZeroNoSamples2 << ", " << numRegionsNonZeroOneSample2 << ", " << numRegionsNonZeroTwoSamples2;
+		cout << ", " << numRegionsZeroNoSamples2 << ", " << numRegionsZeroOneSample2;
+		cout << ", " << numRegionsZeroTwoSamples2 << endl;
 		//cout << "Ended up with " << numSlices << endl;
-		//cout << "This slice had an average percent difference in error of " << avgErrorForSlice * (100/numSlices) << endl;
-		//cout << "This slice had an average percent difference (adjusted for factor) in error of " << avgErrorForSliceWFactor * (100/(numSlices * totalFactor)) << endl;
-		//cout << "This slice had a max percent difference in error of " << maxErrorForSlice * 100 << endl;
+		cout << "This slice had an average percent difference in error of " << avgErrorForSlice * (100/numSlices) << endl;
+		cout << "This slice had an average percent difference (adjusted for factor) in error of " << avgErrorForSliceWFactor * (100/(numSlices * totalFactor)) << endl;
+		cout << "This slice had a max percent difference in error of " << maxErrorForSlice * 100 << endl;
 	}
 	
 	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
