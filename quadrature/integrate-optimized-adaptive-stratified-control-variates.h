@@ -386,7 +386,7 @@ public:
 				nonZeroPart = false;
 				nonZeroApproxPart = false;
 				numRegionsTotal++;
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 100; i++) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					auto approx = regions_here[r]->approximation_at(sample);
 					if (abs(value[1]) > 0) {
@@ -527,22 +527,8 @@ public:
 							numRegionsZeroOneSample++;
 						} else if (samples_per_region == 2) {
 							regionType = 9;
-							
-							numRegionsZeroTwoSamples++;
-						} else {
-							numRegionsZeroMoreSamples++;
-						}
-					} else {
-						if (samples_per_region == 0) {
-							regionType = 10;
-							numRegionsZeroNoSamples2++;
-						} else if (samples_per_region == 1) {
-							regionType = 11;
-							numRegionsZeroOneSample2++;
-						} else if (samples_per_region == 2) {
-							regionType = 12;
 							int shouldUse = checkShouldUse(rng);
-							if (shouldUse >= 10000) {
+							//if (shouldUse >= 5000000) {
 								double numTrials = 100;
 								double regionToGraph = r;
 								int numGroundTruthSamplesDefault = samples_per_region * numTrials;
@@ -635,18 +621,32 @@ public:
 								}
 								ofs2 << toDoStuffWith << ", " << factor << endl;
 								avgErrorForSlice += toDoStuffWith;
-								if (shouldUse >= 100) {
+								//if (shouldUse >= 9990) {
 									//cout << " (versus their error: " << avgDefaultError << ")\n";
 									//cout << avgErrorForSlice * (100/numSlices) << endl;
-									//cout << avgErrorForSlice << ", " << numSlices << ", " << (100.0/numSlices) << ", " << avgErrorForSlice * (100.0/numSlices) << endl;
-								}
+									cout << avgErrorForSlice << ", " << numSlices << ", " << (100.0/numSlices) << ", " << avgErrorForSlice * (100.0/numSlices) << endl;
+								//}
 								totalFactor += factor;
 								numSlices++;
 								avgErrorForSliceWFactor += toDoStuffWith * factor;
 								if (toDoStuffWith > maxErrorForSlice) {
 									maxErrorForSlice = toDoStuffWith;
 								}
-							}
+							//}
+							numRegionsZeroTwoSamples++;
+						} else {
+							numRegionsZeroMoreSamples++;
+						}
+					} else {
+						if (samples_per_region == 0) {
+							regionType = 10;
+							numRegionsZeroNoSamples2++;
+						} else if (samples_per_region == 1) {
+							regionType = 11;
+							numRegionsZeroOneSample2++;
+						} else if (samples_per_region == 2) {
+							regionType = 12;
+							
 							numRegionsZeroTwoSamples2++;
 						} else {
 							numRegionsZeroMoreSamples2++;
@@ -984,12 +984,12 @@ public:
 		//cout << "Of those, " << (totalNumTotal - totalNumZero) << " had non-zero values\n";
 		//cout << (completeTotal-totalOther-totalFive) << " zeros, " << totalFive << " fives, and " << totalOther << " that are neither 0 nor 5\n";
 		//cout << totalOther << " are not 5 or 0 of " << completeTotal << endl;
-		//cout << numRegionsNonZeroNoSamples << ", " << numRegionsNonZeroOneSample << ", " << numRegionsNonZeroTwoSamples;
-		//cout << ", " << numRegionsZeroNoSamples << ", " << numRegionsZeroOneSample;
-		//cout << ", " << numRegionsZeroTwoSamples;
+		cout << numRegionsNonZeroNoSamples << ", " << numRegionsNonZeroOneSample << ", " << numRegionsNonZeroTwoSamples;
+		cout << ", " << numRegionsZeroNoSamples << ", " << numRegionsZeroOneSample;
+		cout << ", " << numRegionsZeroTwoSamples;
 		cout << ", " << numRegionsNonZeroNoSamples2 << ", " << numRegionsNonZeroOneSample2 << ", " << numRegionsNonZeroTwoSamples2;
-		//cout << ", " << numRegionsZeroNoSamples2 << ", " << numRegionsZeroOneSample2;
-		//cout << ", " << numRegionsZeroTwoSamples2 << endl;
+		cout << ", " << numRegionsZeroNoSamples2 << ", " << numRegionsZeroOneSample2;
+		cout << ", " << numRegionsZeroTwoSamples2 << endl;
 		cout << "Ended up with " << numSlices << endl;
 		cout << "This slice had an average percent difference in error of " << avgErrorForSlice * (100.0/numSlices) << endl;
 		cout << "This slice had an average percent difference (adjusted for factor) in error of " << avgErrorForSliceWFactor * (100/(numSlices * totalFactor)) << endl;
