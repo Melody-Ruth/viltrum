@@ -305,9 +305,11 @@ public:
 			double iStep = (pixel_range.max(0)-pixel_range.min(0))/100;
 
 			//if (pixel[0] == 283 && pixel[1] == 176) {
-			if (pixel[0] == 226 && pixel[1] == 17) {
+			//if (pixel[0] == 226 && pixel[1] == 17) {
+			
 			//if (pixel[0] == 203 && pixel[1] == 106) {//0.158927, 0.148549, 0.866819, 0.251459
 			//0.442578,0.0454583,0.128979,0.831627 (region 166)
+			if (false) {
 				const auto& regions_here = regions_per_pixel[pixel];
 				//cout << (regions_here[29]->range()).maxMinString() << endl;
 				
@@ -352,19 +354,19 @@ public:
 					//}
 				}*/
 				//estimate = estimate/numSamples;
-				cout << "Estimate: " << estimate << " (no adjustment for size) " << endl;
+				//cout << "Estimate: " << estimate << " (no adjustment for size) " << endl;
 				//estimate *= local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size())
-				estimate *= pixel_range.max(0)-pixel_range.min(0);
-				estimate *= pixel_range.max(1)-pixel_range.min(1);
-				cout << "Actually, probably " << estimate << endl;
+				//estimate *= pixel_range.max(0)-pixel_range.min(0);
+				//estimate *= pixel_range.max(1)-pixel_range.min(1);
+				//cout << "Actually, probably " << estimate << endl;
 			}
 
 			const auto& regions_here = regions_per_pixel[pixel];
 			std::size_t samples_per_region = spp / regions_here.size();
 			//cout << "Hello???" << endl;
-			if (pixel[0] == 226 && pixel[1] == 17) {
+			/*if (pixel[0] == 226 && pixel[1] == 17) {
 				cout << "Samples per region: " << samples_per_region << endl;
-			}
+			}*/
 			//cout << "Number of regions associated with this pixel: " << regions_here.size() << ", spp: " << spp << ", samples per region: " << samples_per_region << endl;
 			//cout << samples_per_region << endl;
             std::size_t samples_per_region_rest = spp % regions_here.size();
@@ -383,24 +385,27 @@ public:
 			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
-				nonZeroPart = false;
-				nonZeroApproxPart = false;
-				numRegionsTotal++;
-				for (int i = 0; i < 100; i++) {
-					auto [value,sample] = sampler.sample(f,local_range,rng);
-					auto approx = regions_here[r]->approximation_at(sample);
-					if (abs(value[1]) > 0) {
-						nonZeroPart = true;
+				//nonZeroPart = false;
+				//nonZeroApproxPart = false;
+				//numRegionsTotal++;
+				/*if (pixel[0] == 181 && pixel[1] == 59) {
+					for (int i = 0; i < 100; i++) {
+						auto [value,sample] = sampler.sample(f,local_range,rng);
+						auto approx = regions_here[r]->approximation_at(sample);
+						if (abs(value[1]) > 0) {
+							nonZeroPart = true;
+						}
+						if (abs(approx[1]) > 0) {
+							nonZeroApproxPart = true;
+						}
+						if (nonZeroPart && nonZeroApproxPart) {
+							break;
+						}
 					}
-					if (abs(approx[1]) > 0) {
-						nonZeroApproxPart = true;
-					}
-					if (nonZeroPart && nonZeroApproxPart) {
-						break;
-					}
-				}
+				}*/
+				
 				//Error comparison:
-				int shouldUse = checkShouldUse(rng);
+				//int shouldUse = checkShouldUse(rng);
 				//if (shouldUse >= 10000) {
 				/*if (numSlices < 3) {
 					double numTrials = 100;
@@ -527,6 +532,7 @@ public:
 							numRegionsZeroOneSample++;
 						} else if (samples_per_region == 2) {
 							regionType = 9;
+							/*
 							int shouldUse = checkShouldUse(rng);
 							//if (shouldUse >= 5000000) {
 								double numTrials = 100;
@@ -632,7 +638,7 @@ public:
 								if (toDoStuffWith > maxErrorForSlice) {
 									maxErrorForSlice = toDoStuffWith;
 								}
-							//}
+							//}*/
 							numRegionsZeroTwoSamples++;
 						} else {
 							numRegionsZeroMoreSamples++;
@@ -651,6 +657,95 @@ public:
 						} else {
 							numRegionsZeroMoreSamples2++;
 						}
+					}
+					if (false) {
+					//if (pixel[0] == 181 && pixel[1] == 59 && numSamples == 2) {
+						cout << "Region type: " << regionType << endl;
+						double numTrials = 1000;
+						double regionToGraph = r;
+						int numGroundTruthSamplesDefault = samples_per_region * numTrials;
+						int numGroundTruthSamples = numGroundTruthSamplesDefault;
+								
+						auto local_range = pixel_range.intersection_large(regions_here[regionToGraph]->range());
+						double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
+						std::vector<std::tuple<value_type,value_type>> defaultSamples; defaultSamples.reserve(numTrials*samples_per_region);
+						std::vector<std::tuple<value_type,value_type>> antitheticSamples; antitheticSamples.reserve(numTrials*samples_per_region);
+						std::vector<std::tuple<value_type,value_type>> groundTruthSamples; groundTruthSamples.reserve(numTrials*samples_per_region);
+
+						cout << "region " << regionToGraph << ". Dimensions are i, j, k, and l. i is on the x axis and k is on the y axis. \nJ and L are fixed at " << setJ << " and " << setL << ", respectively. (Pixel " << pixel[0] << ", " << pixel[1] << ")" << endl;
+
+						for (std::size_t s = 0; s<samples_per_region * numTrials; ++s) {
+							auto [value,sample] = sampler.sample(f,local_range,rng);
+							//cout << "Adding another sample " << value[1] << endl;
+							defaultSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
+						}
+
+						for (std::size_t pair = 0; pair < numTrials; pair++) {
+							for (std::size_t s = 0; s<samples_per_region/2; ++s) {
+								auto [value,sample] = sampler.sample(f,local_range,rng);
+								antitheticSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
+								auto [value2,sample2] = sampler.sampleOpposite(f,local_range,rng,sample);
+								antitheticSamples.push_back(std::make_tuple(factor*value2, factor*regions_here[regionToGraph]->approximation_at(sample2)));
+							}
+						}
+
+						for (std::size_t s = 0; s < numGroundTruthSamples; ++s) {
+							auto [value,sample] = sampler.sample(f,local_range,rng);
+							groundTruthSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
+						}
+
+						auto a = alpha_calculator.alpha(samples);
+						value_type defaultResidual = (std::get<0>(defaultSamples[0]) - a*std::get<1>(defaultSamples[0]));
+						value_type antitheticResidual = (std::get<0>(antitheticSamples[0]) - a*std::get<1>(antitheticSamples[0]));
+						value_type groundTruthResidual = (std::get<0>(antitheticSamples[0]) - a*std::get<1>(antitheticSamples[0]));
+						double newTemp;
+						for (std::size_t s=1; s<numGroundTruthSamples;++s) {
+							groundTruthResidual += (std::get<0>(groundTruthSamples[s]) - a*std::get<1>(groundTruthSamples[s]));
+						}
+						groundTruthResidual /= numGroundTruthSamples;
+						double avgDefaultError = 0;
+						double avgAntitheticError = 0;
+						for (std::size_t trial=0; trial < numTrials;++trial) {
+							defaultResidual = (std::get<0>(defaultSamples[trial*samples_per_region]) - a*std::get<1>(defaultSamples[trial*samples_per_region]));
+							antitheticResidual = (std::get<0>(antitheticSamples[trial*samples_per_region]) - a*std::get<1>(antitheticSamples[trial*samples_per_region]));
+							for (std::size_t s=1; s<samples_per_region;++s) {
+								defaultResidual += (std::get<0>(defaultSamples[trial*samples_per_region+s]) - a*std::get<1>(defaultSamples[trial*samples_per_region+s]));
+								antitheticResidual += (std::get<0>(antitheticSamples[trial*samples_per_region+s]) - a*std::get<1>(antitheticSamples[trial*samples_per_region+s]));
+							}
+							defaultResidual /= samples_per_region;
+							antitheticResidual /= samples_per_region;
+							avgDefaultError += (defaultResidual[1] - groundTruthResidual[1]) * (defaultResidual[1] - groundTruthResidual[1]);
+							avgAntitheticError += (antitheticResidual[1] - groundTruthResidual[1]) * (antitheticResidual[1] - groundTruthResidual[1]);
+						}
+
+						avgDefaultError /= numTrials;
+						avgAntitheticError /= numTrials;
+						avgDefaultError = sqrt(avgDefaultError);
+						avgAntitheticError = sqrt(avgAntitheticError);
+
+						double avgAvg = (avgDefaultError + avgAntitheticError) / 2;
+						double toDoStuffWith = 0;
+						if (avgAvg != 0) {
+							toDoStuffWith = (avgDefaultError - avgAntitheticError) / avgAvg;
+						}
+						ofs2 << toDoStuffWith << ", " << factor << endl;
+						avgErrorForSlice += toDoStuffWith;
+						//if (shouldUse >= 9990) {
+							//cout << " (versus their error: " << avgDefaultError << ")\n";
+							//cout << avgErrorForSlice * (100/numSlices) << endl;
+							//cout << avgErrorForSlice << ", " << numSlices << ", " << (100.0/numSlices) << ", " << avgErrorForSlice * (100.0/numSlices) << endl;
+						//}
+						totalFactor += factor;
+						numSlices++;
+						avgErrorForSliceWFactor += toDoStuffWith * factor;
+						if (toDoStuffWith > maxErrorForSlice) {
+							maxErrorForSlice = toDoStuffWith;
+						}
+						cout << "Average default error: " << avgDefaultError << endl;
+						cout << "Average antithetic error: " << avgAntitheticError << endl;
+					} else if (pixel[0] == 181 && pixel[1] == 59) {
+						//cout << "Region type: " << regionType << endl;
+						//cout << "Same thing for both types\n";
 					}
 				}
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
@@ -687,7 +782,7 @@ public:
 						cout << "hello" << endl;
 					}*/
 					//if (r == 29 && pixel[0] == 203 && pixel[1] == 106) {
-					if (pixel[0] == 226 && pixel[1] == 17) {
+					/*if (pixel[0] == 226 && pixel[1] == 17) {
 						cout << "Hello?????? Pixel 226, 17 here\n";
 					}
 					if (r == 29 && pixel[0] == 226 && pixel[1] == 17) {
@@ -717,7 +812,7 @@ public:
 							max3 = sample[3];
 						}
 						//cout << "region 29 example: " << sample[0] << ", " << sample[1] << ", " << sample[2] << ", " << sample[3] << endl;
-					}
+					}*/
 					completeTotal++;
 					if (value[0] == 0) {
 						numZero++;
@@ -750,9 +845,9 @@ public:
 				}*/
 			
 			} 
-			if (pixel[0] == 226 && pixel[1] == 17) {
+			/*if (pixel[0] == 226 && pixel[1] == 17) {
 				cout << "Samples per region: " << samples_per_region << endl;
-			}
+			}*/
 			//cout << "Hello2\n";
             std::uniform_int_distribution<std::size_t> sample_region(std::size_t(0),regions_here.size()-1);
             //We randomly distribute the rest of samples among all regions 
@@ -935,13 +1030,8 @@ public:
 			int numDiff = 0;
 			for (std::size_t s=1; s<spp;++s) {
 				residual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
-				if (pixel[0] == 283 && pixel[1] == 176) {
-					//cout << std::get<1>(samples[s])[0] << endl;
-				}
-				if (pixel[0] == 203 && pixel[1] == 106) {
-					//cout << std::get<1>(samples[s])[0] << endl;
-				}
-				actualEstimate += std::get<1>(samples[s])[0];
+				
+				/*actualEstimate += std::get<1>(samples[s])[0];
 				actualEstimate2 += std::get<1>(samples[s])[2];
 				if (std::get<0>(samples[s])[0] != 0 && std::get<0>(samples[s])[0] != 5) {
 					numDiff++;
@@ -951,7 +1041,7 @@ public:
 					numZero++;
 				} else {
 					//cout << std::get<0>(samples[s])[0] << endl;
-				}
+				}*/
 			}
 
 			
@@ -984,7 +1074,7 @@ public:
 		//cout << "Of those, " << (totalNumTotal - totalNumZero) << " had non-zero values\n";
 		//cout << (completeTotal-totalOther-totalFive) << " zeros, " << totalFive << " fives, and " << totalOther << " that are neither 0 nor 5\n";
 		//cout << totalOther << " are not 5 or 0 of " << completeTotal << endl;
-		cout << numRegionsNonZeroNoSamples << ", " << numRegionsNonZeroOneSample << ", " << numRegionsNonZeroTwoSamples;
+		/*cout << numRegionsNonZeroNoSamples << ", " << numRegionsNonZeroOneSample << ", " << numRegionsNonZeroTwoSamples;
 		cout << ", " << numRegionsZeroNoSamples << ", " << numRegionsZeroOneSample;
 		cout << ", " << numRegionsZeroTwoSamples;
 		cout << ", " << numRegionsNonZeroNoSamples2 << ", " << numRegionsNonZeroOneSample2 << ", " << numRegionsNonZeroTwoSamples2;
@@ -993,7 +1083,7 @@ public:
 		cout << "Ended up with " << numSlices << endl;
 		cout << "This slice had an average percent difference in error of " << avgErrorForSlice * (100.0/numSlices) << endl;
 		cout << "This slice had an average percent difference (adjusted for factor) in error of " << avgErrorForSliceWFactor * (100/(numSlices * totalFactor)) << endl;
-		cout << "This slice had a max percent difference in error of " << maxErrorForSlice * 100 << endl;
+		cout << "This slice had a max percent difference in error of " << maxErrorForSlice * 100 << endl;*/
 	}
 	
 	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
@@ -1047,7 +1137,7 @@ public:
 				//Determine region type
 				bool nonZeroPart = false;
 				bool nonZeroApproxPart = false;
-				for (int i = 0; i < 10; i++) {
+				/*for (int i = 0; i < 10; i++) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					auto approx = regions_here[r]->approximation_at(sample);
 					if (abs(value[1]) > 0) {
@@ -1096,17 +1186,17 @@ public:
 							regionType = 12;
 						}
 					}
-				}
+				}*/
 				for (std::size_t s = 0; s<samples_per_region/2; ++s) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
-					if (regionType == 9) {
+					//if (regionType == 9) {
 						auto [value2,sample2] = sampler.sampleOpposite(f,local_range,rng,sample);
 						samples.push_back(std::make_tuple(factor*value2, factor*regions_here[r]->approximation_at(sample2)));
-					} else {
-						auto [value2,sample2] = sampler.sample(f,local_range,rng);
-						samples.push_back(std::make_tuple(factor*value2, factor*regions_here[r]->approximation_at(sample2)));
-					}
+					//} else {
+					//	auto [value2,sample2] = sampler.sample(f,local_range,rng);
+					//	samples.push_back(std::make_tuple(factor*value2, factor*regions_here[r]->approximation_at(sample2)));
+					//}
 				}
 				if (samples_per_region % 2 != 0) {
 					//non-antithetic extra
@@ -1133,7 +1223,7 @@ public:
 				residual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
-			ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
+			//ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
 		}
 		//cout << "Samples per regions, count\n";
 		/*for (auto myPair : samplesPerRegionCount) {
