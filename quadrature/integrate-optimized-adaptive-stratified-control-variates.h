@@ -25,6 +25,9 @@ public:
 	template<typename F, typename Float, std::size_t DIM>
     auto compute_regions(const F& f, const Range<Float,DIM>& range) const {
 		//cout << "Computing regions!" << endl;
+		//cout << "Number of iterations: " << adaptive_iterations << endl;
+		//adaptive_iterations /= 2;
+		cout << "Number of iterations: " << adaptive_iterations << endl;
         auto regions = stepper.init(f,range);
         for (unsigned long i = 0; i<adaptive_iterations; ++i) {
             stepper.step(f,range,regions);
@@ -266,13 +269,15 @@ public:
 				}
 			//}
 		}*/
-		//cout << "Tested " << numTotal << "points\n";
-		//cout << "Of those, " << (numTotal-numZero) << " had non-zero values\n";
+		//cout << "Tested " << numTotal << "points" << endl;
+		//cout << "Of those, " << (numTotal-numZero) << " had non-zero values" << endl;
 
 		cout << "Bin dimensions: " << DIMBINS << endl;
 		for (int i = 0; i < DIM; i++) {
 			cout << range.min(i) << ", " << range.max(i) << endl;
 		}
+		cout << "About to start" << endl;
+		bool firstRound = true;
         auto regions = region_generator.compute_regions(f,range);
 		using value_type = decltype(f(range.min()));
 		using R = typename decltype(regions)::value_type;
@@ -288,15 +293,22 @@ public:
 		}
 		cout << f(range.min())[0] << ", " << f(range.min())[1] << ", " << f(range.min())[2] << endl;
 		cout << "Number of pixels total: " << tempCount << endl;
-		for (const auto& r : regions) for (auto pixel : pixels_in_region(r,bin_resolution,range))
-			regions_per_pixel[pixel].push_back(&r);
+		for (const auto& r : regions) {
+			for (auto pixel : pixels_in_region(r,bin_resolution,range)) {
+				cout << pixel[0] << endl;
+				regions_per_pixel[pixel].push_back(&r);
+			}
+		}
 		int totalNumZero = 0;
 		int totalNumTotal = 0;
-		//cout << "Hi!!!!!\n";
-
+		//cout << "Hi!!!!!" << endl;
+		cout << "About to start pixels" << endl;
 		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
+			if (firstRound) {
+				cout << "starting pixels" << endl;
+			}
 			justFoundOne = false;
-			//cout << "Hello1\n";
+			//cout << "Hello1" << endl;
 			totalNumTotal++;
 			bins(pixel) = value_type(0);
 			auto pixel_range = range_of_pixel(pixel,bin_resolution,range);
@@ -309,6 +321,9 @@ public:
 			
 			//if (pixel[0] == 203 && pixel[1] == 106) {//0.158927, 0.148549, 0.866819, 0.251459
 			//0.442578,0.0454583,0.128979,0.831627 (region 166)
+			if (firstRound) {
+				cout << "check point one" << endl;
+			}
 			if (false) {
 				const auto& regions_here = regions_per_pixel[pixel];
 				//cout << (regions_here[29]->range()).maxMinString() << endl;
@@ -380,7 +395,9 @@ public:
 			double setJ = 0, setL = 0;
 			bool nonZeroPart = false;
 			bool nonZeroApproxPart = false;
-
+			if (firstRound) {
+				cout << "check point two" << endl;
+			}
             //First: stratified distribution of samples (uniformly)
 			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
@@ -497,7 +514,7 @@ public:
 						} else if (samples_per_region == 2) {
 							regionType = 3;
 							numRegionsNonZeroTwoSamples++;
-							//cout << "counter++\n";
+							//cout << "counter++" << endl;
 							//int shouldUse = checkShouldUse(rng);
 							//if (numRegionsNonZeroTwoSamples <= 1000) {
 							//if (shouldUse >= 100) {
@@ -609,7 +626,7 @@ public:
 								avgAntitheticError = sqrt(avgAntitheticError);
 
 								if (shouldUse >= 100) {
-									//cout << " (versus their error: " << avgDefaultError << ")\n";
+									//cout << " (versus their error: " << avgDefaultError << ")" << endl;
 								}
 
 								//cout << avgDefaultError << " (theirs) versus " << avgAntitheticError << " (ours)" << endl;
@@ -628,7 +645,7 @@ public:
 								ofs2 << toDoStuffWith << ", " << factor << endl;
 								avgErrorForSlice += toDoStuffWith;
 								//if (shouldUse >= 9990) {
-									//cout << " (versus their error: " << avgDefaultError << ")\n";
+									//cout << " (versus their error: " << avgDefaultError << ")" << endl;
 									//cout << avgErrorForSlice * (100/numSlices) << endl;
 									cout << avgErrorForSlice << ", " << numSlices << ", " << (100.0/numSlices) << ", " << avgErrorForSlice * (100.0/numSlices) << endl;
 								//}
@@ -731,7 +748,7 @@ public:
 						ofs2 << toDoStuffWith << ", " << factor << endl;
 						avgErrorForSlice += toDoStuffWith;
 						//if (shouldUse >= 9990) {
-							//cout << " (versus their error: " << avgDefaultError << ")\n";
+							//cout << " (versus their error: " << avgDefaultError << ")" << endl;
 							//cout << avgErrorForSlice * (100/numSlices) << endl;
 							//cout << avgErrorForSlice << ", " << numSlices << ", " << (100.0/numSlices) << ", " << avgErrorForSlice * (100.0/numSlices) << endl;
 						//}
@@ -745,7 +762,10 @@ public:
 						cout << "Average antithetic error: " << avgAntitheticError << endl;
 					} else if (pixel[0] == 181 && pixel[1] == 59) {
 						//cout << "Region type: " << regionType << endl;
-						//cout << "Same thing for both types\n";
+						//cout << "Same thing for both types" << endl;
+					}
+					if (firstRound) {
+						cout << "check point three" << endl;
 					}
 				}
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
@@ -783,7 +803,7 @@ public:
 					}*/
 					//if (r == 29 && pixel[0] == 203 && pixel[1] == 106) {
 					/*if (pixel[0] == 226 && pixel[1] == 17) {
-						cout << "Hello?????? Pixel 226, 17 here\n";
+						cout << "Hello?????? Pixel 226, 17 here" << endl;
 					}
 					if (r == 29 && pixel[0] == 226 && pixel[1] == 17) {
 						cout << sample[0] << endl;
@@ -822,20 +842,23 @@ public:
 						totalOther++;
 					}
 					//if (value[0] > 0) {
-						//cout << "Found: \n";
+						//cout << "Found: " << endl;
 						//cout << sample[0] << "," << sample[1] << "," << sample[2] << "," << sample[3] << endl;
 					//}
 					//if (pixel[0] > 282 && pixel[0] < 284 && pixel[1] > 175 && pixel[1] < 177 && value[0] != 0) {
 					//if (pixel[0] > 282 && pixel[1] < 177 && value[0] != 0) {
 					//if (pixel[0] > 250 && pixel[0] < 325 && pixel[1] > 125 && pixel[1] < 225 && value[0] != 0) {
 						//cout << pixel[0] << ", " << pixel[1] << endl;
-						//cout << "Found it!!!\n";
+						//cout << "Found it!!!" << endl;
 						//cout << "Not 0! " << value[0] << endl;
 					//}
 					/*if (pixel[0] > 280 && pixel[0] < 285 && pixel[1] > 170 && pixel[1] < 180 && value[0] != 0) {
 						cout << pixel[0] << ", " << pixel[1] << endl;
 						cout << "Not 0 again! " << value[0] << endl;
 					}*/
+					if (firstRound) {
+						cout << "check point four" << endl;
+					}
 				}
 				//f (r == 29 && pixel[0] == 203 && pixel[1] == 106) {
 				/*if (r == 29 && pixel[0] == 226 && pixel[1] == 17) {
@@ -848,7 +871,7 @@ public:
 			/*if (pixel[0] == 226 && pixel[1] == 17) {
 				cout << "Samples per region: " << samples_per_region << endl;
 			}*/
-			//cout << "Hello2\n";
+			//cout << "Hello2" << endl;
             std::uniform_int_distribution<std::size_t> sample_region(std::size_t(0),regions_here.size()-1);
             //We randomly distribute the rest of samples among all regions 
 			int numZero = 0;
@@ -856,6 +879,9 @@ public:
 			int numOther = 0;
 			int firstR = -1;
             for (std::size_t i = 0; i<samples_per_region_rest; ++i) {
+				if (firstRound) {
+					cout << "check point five" << endl;
+				}
 			    std::size_t r = sample_region(rng);
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
@@ -865,7 +891,7 @@ public:
 					cout << value[0] << " from ";
 					firstR = r;
 					cout << sample[0] << "," << sample[1] << "," << sample[2] << "," << sample[3] << " (region " << r << ")" << endl;
-					//cout << "Hello?????? Pixel 226, 17 here take 2\n";
+					//cout << "Hello?????? Pixel 226, 17 here take 2" << endl;
 				}*/
 				/*if (pixel[0] == 226 && pixel[1] == 17 && value[1] > 0) {
 					setJ = sample[1];
@@ -892,7 +918,7 @@ public:
 				
             }
 			//if (numOther > 0) {
-				//cout << numZero << " zeros, " << numFive << " fives, and " << numOther << " that are neither 0 nor 5\n";
+				//cout << numZero << " zeros, " << numFive << " fives, and " << numOther << " that are neither 0 nor 5" << endl;
 			//}
 			
 			double iStart, iEnd, kStart, kEnd;
@@ -967,7 +993,7 @@ public:
 					}
 				}
 				if (samples_per_region % 2 != 0) {
-					cout << "don't do this!!\n";
+					cout << "don't do this!!" << endl;
 					//non-antithetic extra
 					//auto [value,sample] = sampler.sample(f,local_range,rng);
 					//antitheticSamples.push_back(std::make_tuple(factor*value, factor*regions_here[regionToGraph]->approximation_at(sample)));
@@ -1059,20 +1085,24 @@ public:
 				totalNumZero++;
 				//cout << pixel[0] << ", " << pixel[1] << endl;
 			}
-			//cout << "Tested " << numTotal << "points\n";
-			//cout << "Of those, " << (numTotal-numZero) << " had non-zero values\n";
-			//cout << "Of those, " << numDiff << " had a value besides 0 or 5\n";
+			//cout << "Tested " << numTotal << "points" << endl;
+			//cout << "Of those, " << (numTotal-numZero) << " had non-zero values" << endl;
+			//cout << "Of those, " << numDiff << " had a value besides 0 or 5" << endl;
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
 			//Printing out final pixel color for error purposes:
-			//ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
+			ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
+			if (firstRound) {
+				cout << "check point six" << endl;
+			}
+			firstRound = false;
 			/*if (pixel[0] == 266 && pixel[1] == 17) {
 				cout << "Final result: " << bins(pixel)[0] << ", " << bins(pixel)[1] << ", " << bins(pixel)[2] << endl;
 			}*/
 		}
-		//cout << "Tested " << totalNumTotal << "pixels\n";
-		//cout << "Of those, " << (totalNumTotal - totalNumZero) << " had non-zero values\n";
-		//cout << (completeTotal-totalOther-totalFive) << " zeros, " << totalFive << " fives, and " << totalOther << " that are neither 0 nor 5\n";
+		//cout << "Tested " << totalNumTotal << "pixels" << endl;
+		//cout << "Of those, " << (totalNumTotal - totalNumZero) << " had non-zero values" << endl;
+		//cout << (completeTotal-totalOther-totalFive) << " zeros, " << totalFive << " fives, and " << totalOther << " that are neither 0 nor 5" << endl;
 		//cout << totalOther << " are not 5 or 0 of " << completeTotal << endl;
 		/*cout << numRegionsNonZeroNoSamples << ", " << numRegionsNonZeroOneSample << ", " << numRegionsNonZeroTwoSamples;
 		cout << ", " << numRegionsZeroNoSamples << ", " << numRegionsZeroOneSample;
@@ -1084,6 +1114,9 @@ public:
 		cout << "This slice had an average percent difference in error of " << avgErrorForSlice * (100.0/numSlices) << endl;
 		cout << "This slice had an average percent difference (adjusted for factor) in error of " << avgErrorForSliceWFactor * (100/(numSlices * totalFactor)) << endl;
 		cout << "This slice had a max percent difference in error of " << maxErrorForSlice * 100 << endl;*/
+		if (firstRound) {
+			cout << "finished with integrator" << endl;
+		}
 	}
 	
 	IntegratorStratifiedPixelControlVariates(RegionGenerator&& region_generator,
@@ -1114,6 +1147,8 @@ public:
 		using R = typename decltype(regions)::value_type;
 		vector_dimensions<std::vector<const R*>,DIMBINS> regions_per_pixel(bin_resolution);
 		unordered_map<int, int> samplesPerRegionCount;
+		cout << "About to start" << endl;
+		bool firstRound = true;
 		for (const auto& r : regions) for (auto pixel : pixels_in_region(r,bin_resolution,range))
 			regions_per_pixel[pixel].push_back(&r);
 		for (auto pixel : multidimensional_range(bin_resolution)) { // Per pixel
@@ -1131,6 +1166,9 @@ public:
 			std::vector<std::tuple<value_type,value_type>> samples; samples.reserve(spp);
 			
             //First: stratified distribution of samples (uniformly)
+			if (firstRound) {
+				cout << "check point one" << endl;
+			}
 			for (std::size_t r = 0; r<regions_here.size(); ++r) { 
                 auto local_range = pixel_range.intersection_large(regions_here[r]->range());
 				double factor = local_range.volume()*double(regions_per_pixel.size())*double(regions_here.size());
@@ -1187,6 +1225,9 @@ public:
 						}
 					}
 				}*/
+				if (firstRound) {
+					cout << "Checkpoint 2 " << endl;
+				}
 				for (std::size_t s = 0; s<samples_per_region/2; ++s) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
@@ -1198,10 +1239,16 @@ public:
 					//	samples.push_back(std::make_tuple(factor*value2, factor*regions_here[r]->approximation_at(sample2)));
 					//}
 				}
+				if (firstRound) {
+					cout << "Checkpoint 3 " << endl;
+				}
 				if (samples_per_region % 2 != 0) {
 					//non-antithetic extra
 					auto [value,sample] = sampler.sample(f,local_range,rng);
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
+				}
+				if (firstRound) {
+					cout << "Checkpoint 4 " << endl;
 				}
 			} 
             std::uniform_int_distribution<std::size_t> sample_region(std::size_t(0),regions_here.size()-1);
@@ -1223,9 +1270,11 @@ public:
 				residual += (std::get<0>(samples[s]) - a*std::get<1>(samples[s]));
 			bins(pixel) += (residual/double(spp));
 			for (auto r : regions_here) bins(pixel) += double(regions_per_pixel.size())*a*r->integral_subrange(pixel_range.intersection_large(r->range()));
-			//ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
+			ofs << bins(pixel)[0] << "," << bins(pixel)[1] << "," << bins(pixel)[2] << endl;
+			firstRound = false;
 		}
-		//cout << "Samples per regions, count\n";
+		cout << "Integration finished" << endl;
+		//cout << "Samples per regions, count" << endl;
 		/*for (auto myPair : samplesPerRegionCount) {
 			cout << x.first << ", " << x.second << endl;
 		}*/
