@@ -295,7 +295,7 @@ public:
 		cout << "Number of pixels total: " << tempCount << endl;
 		for (const auto& r : regions) {
 			for (auto pixel : pixels_in_region(r,bin_resolution,range)) {
-				cout << pixel[0] << endl;
+				//cout << pixel[0] << endl;
 				regions_per_pixel[pixel].push_back(&r);
 			}
 		}
@@ -324,16 +324,21 @@ public:
 			if (firstRound) {
 				cout << "check point one" << endl;
 			}
-			if (false) {
+			if (pixel[0] == 483 && pixel[1] == 373) {
 				const auto& regions_here = regions_per_pixel[pixel];
 				//cout << (regions_here[29]->range()).maxMinString() << endl;
-				
-				for (int i = 338; i < 338; i++) {
-					//cout << "Min and max for region " << i << endl;
-					for (auto test : regions_here[i]->range()) {
-						//cout << test[0] << ", " << test[1] << ", " << test[2] << ", " << test[3] << endl;
-					}
+				for (std::size_t r = 0; r<regions_here.size(); ++r) { 
+					auto local_range = pixel_range.intersection_large(regions_here[r]->range());
+					cout << "Region " << r << ": " << local_range.min(0) << ", " << local_range.max(0) << ", " << local_range.min(1) << ", " << local_range.max(1) <<  local_range.min(2) << ", " << local_range.max(2) <<  local_range.min(3) << ", " << local_range.max(3) << endl;
 				}
+                
+				
+				/*for (int i = 338; i < 338; i++) {
+					cout << "Min and max for region " << i << endl;
+					for (auto test : regions_here[i]->range()) {
+						cout << test[0] << ", " << test[1] << ", " << test[2] << ", " << test[3] << endl;
+					}
+				}*/
 				cout << "Hello??? It's I" << endl;
 				cout << "i range: " << pixel_range.min(0) << " to " << pixel_range.max(0) << endl;
 				cout << "j range: " << pixel_range.min(1) << " to " << pixel_range.max(1) << endl;
@@ -765,7 +770,7 @@ public:
 						//cout << "Same thing for both types" << endl;
 					}
 					if (firstRound) {
-						cout << "check point three" << endl;
+						//cout << "check point three" << endl;
 					}
 				}
 				for (std::size_t s = 0; s<samples_per_region; ++s) {
@@ -857,7 +862,7 @@ public:
 						cout << "Not 0 again! " << value[0] << endl;
 					}*/
 					if (firstRound) {
-						cout << "check point four" << endl;
+						//cout << "check point four" << endl;
 					}
 				}
 				//f (r == 29 && pixel[0] == 203 && pixel[1] == 106) {
@@ -1226,7 +1231,7 @@ public:
 					}
 				}*/
 				if (firstRound) {
-					cout << "Checkpoint 2 " << endl;
+					//cout << "Checkpoint 2 " << endl;
 				}
 				for (std::size_t s = 0; s<samples_per_region/2; ++s) {
 					auto [value,sample] = sampler.sample(f,local_range,rng);
@@ -1240,7 +1245,7 @@ public:
 					//}
 				}
 				if (firstRound) {
-					cout << "Checkpoint 3 " << endl;
+					//cout << "Checkpoint 3 " << endl;
 				}
 				if (samples_per_region % 2 != 0) {
 					//non-antithetic extra
@@ -1248,7 +1253,7 @@ public:
 					samples.push_back(std::make_tuple(factor*value, factor*regions_here[r]->approximation_at(sample)));
 				}
 				if (firstRound) {
-					cout << "Checkpoint 4 " << endl;
+					//cout << "Checkpoint 4 " << endl;
 				}
 			} 
             std::uniform_int_distribution<std::size_t> sample_region(std::size_t(0),regions_here.size()-1);
