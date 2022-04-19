@@ -248,7 +248,7 @@ public:
 		double avgErrorForSliceWFactor = 0;
 		int numSlices = 0;
 		double maxErrorForSlice = 0;
-		ofstream ofs("pixelValues.txt", ios::out);
+		ofstream ofs("../../graphing/non_antithetic_pixels.txt", ios::out);
 		ofstream ofs2("graph7.txt", ios::out);
 		/*for (double i = 0; i < 1; i+=0.01) {
 			//for (double j = 0; j < 1; j+= 0.1) {
@@ -1147,7 +1147,7 @@ public:
 	void integrate(Bins& bins, const std::array<std::size_t,DIMBINS>& bin_resolution, const F& f, const Range<Float,DIM>& range) const {
 		int regionType = 0;
         auto regions = region_generator.compute_regions(f,range);
-		ofstream ofs("pixelValues.txt", ios::out);
+		ofstream ofs("../../graphing/antithetic_pixels.txt", ios::out);
 		using value_type = decltype(f(range.min()));
 		using R = typename decltype(regions)::value_type;
 		vector_dimensions<std::vector<const R*>,DIMBINS> regions_per_pixel(bin_resolution);
